@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - "public/HELPBUY_PRD_V2_商业计划与产品方案.md"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -27,6 +28,8 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Include full PRD source
+        run: cp "public/HELPBUY_PRD_V2_商业计划与产品方案.md" "docs/HELPBUY_PRD_V2_商业计划与产品方案.md"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

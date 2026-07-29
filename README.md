@@ -1,14 +1,26 @@
-# vinext-starter
+# HELPBUY：AI 代采购执行平台
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+HELPBUY 是面向代采执行团队的内部 AI 运营平台。它接受客户既有的文件、合同、邮件、聊天、图片和商品链接，将非标准采购需求整理为可执行任务，并通过 API 或受控浏览器推动下单、付款、履约和结算。
 
-## Prerequisites
+客户、供应商和工厂不需要注册或使用 HELPBUY；平台的目标是降低代采团队的人力与时间成本，在同等人力下承接更多订单。
 
-- Node.js `>=22.13.0`
+## 完整方案文档
 
-## Quick Start
+- [商业计划与产品需求文档（完整 PRD）](public/HELPBUY_PRD_V2_商业计划与产品方案.md)
+- [公开概览站](https://jacksonyangrs.github.io/helpbuy-ai-procurement/)
+- [完整 PRD 在线阅读](https://jacksonyangrs.github.io/helpbuy-ai-procurement/document/)
+- [交互式运营 Demo](https://jacksonyangrs.github.io/helpbuy-ai-procurement/demo/)
+
+## 核心产品范围
+
+- 泛输入受理与 AI 结构化：文件、合同、图片、聊天、邮件和链接；
+- 四条执行路径：仅代付、电商下单、指定供应商直接采购、询价代采；
+- 任务工作台：确认规格、执行下单、跟踪付款与履约、归档证据；
+- 付款安全：每笔付款均需审核；AI 不拥有付款放行权；
+- 执行通道：优先第三方企业采购 API；无 API 时使用受控浏览器辅助填单，人完成登录、验证码与最终支付确认；
+- 经营看板：GMV、服务费、人工/AI/资金成本、利润、垫资、应收与人效。
+
+## 本地开发
 
 ```bash
 npm install
@@ -16,83 +28,4 @@ npm run dev
 npm run build
 ```
 
-This starter does not use `wrangler.jsonc`.
-
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
-```
-
-## Optional Dispatch-Owned ChatGPT Sign-In
-
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
-
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
-
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
-
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+`docs/` 是 GitHub Pages 静态站点来源。发布工作流会将 `public/` 中的完整 PRD 同步到 GitHub Pages，确保在线“完整方案”页与仓库 PRD 原文一致。
