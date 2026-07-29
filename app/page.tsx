@@ -52,8 +52,8 @@ export default function Home() {
           <a href="#product">产品方案</a>
           <a href="#ai">AI 与成本</a>
         </div>
-        <a className="nav-file" href="/HELPBUY_PRD_V2_商业计划与产品方案.md">
-          阅读完整 MD <span aria-hidden="true">↗</span>
+        <a className="nav-file" href="/document">
+          阅读完整方案 <span aria-hidden="true">↗</span>
         </a>
       </nav>
 
@@ -268,7 +268,7 @@ export default function Home() {
           用真实订单验证非标准输入解析、人工分钟/单、AI 全成本、动态服务费、资金占用与贡献利润。
           当这些数据证明业务可以盈利且可复制，HELPBUY 才进入规模化推广。
         </p>
-        <a className="button primary inverted" href="/HELPBUY_PRD_V2_商业计划与产品方案.md">阅读完整 Markdown 文档 <span>↗</span></a>
+        <a className="button primary inverted" href="/document">阅读完整方案 <span>↗</span></a>
       </section>
 
       <footer>
