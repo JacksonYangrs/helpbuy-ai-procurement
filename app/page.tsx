@@ -51,6 +51,7 @@ export default function Home() {
           <a href="#stages">三阶段路径</a>
           <a href="#product">产品方案</a>
           <a href="#ai">AI 与成本</a>
+          <a href="/demo">运行 DEMO</a>
         </div>
         <a className="nav-file" href="/document">
           阅读完整方案 <span aria-hidden="true">↗</span>
@@ -72,7 +73,7 @@ export default function Home() {
           </p>
           <div className="hero-actions">
             <a className="button primary" href="#model">查看商业逻辑 <span>↓</span></a>
-            <a className="button secondary" href="#product">查看产品方案</a>
+            <a className="button secondary" href="/demo">运行假数据 DEMO</a>
           </div>
           <div className="metrics" aria-label="核心要点">
             <div><strong>3%</strong><span>起始服务费假设</span></div>
