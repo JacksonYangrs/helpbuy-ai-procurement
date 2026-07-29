@@ -24,6 +24,14 @@ type Order = {
   question: string;
 };
 
+type IntakeSource = "采购邮箱" | "飞书采购群" | "微信导入" | "文件 / 图片";
+
+type IntakeCandidate = Order & {
+  confidence: number;
+  scanScope: string;
+  summary: string;
+};
+
 const seedOrders: Order[] = [
   {
     id: "HB-260729-008",
@@ -131,6 +139,93 @@ const routeTone: Record<string, string> = {
   "询价代采": "sourcing",
 };
 
+const intakeTemplates: Record<IntakeSource, Omit<IntakeCandidate, "id">> = {
+  "采购邮箱": {
+    customer: "启明联合办公",
+    route: "询价代采",
+    source: "采购邮箱 · 未读邮件 + Excel 附件",
+    product: "办公室空气净化器",
+    specs: "适用 60–80㎡；HEPA H13；含上门安装",
+    quantity: "8 台",
+    delivery: "本周五前送达",
+    amount: 12400,
+    fee: 620,
+    aiCost: 9,
+    manualCost: 110,
+    capitalCost: 48,
+    status: "待任务确认",
+    risk: "中",
+    request: "专用采购邮箱收到行政邮件及 Excel 附件：需要为新办公区采购 8 台空气净化器，预算不超过 1.3 万元。",
+    question: "附件未说明 CADR 指标，AI 已标记为待确认项。",
+    confidence: 96,
+    scanScope: "仅扫描专用采购邮箱中新增的邮件线程与附件",
+    summary: "识别到采购意图、预算、数量和交期；建议进入询价代采路径。",
+  },
+  "飞书采购群": {
+    customer: "众创商业中心",
+    route: "电商下单",
+    source: "飞书采购群 · @HELPBUY 机器人消息",
+    product: "前台接待区绿植与花盆",
+    specs: "指定商品链接；含配送与摆放",
+    quantity: "14 盆",
+    delivery: "明天 18:00 前",
+    amount: 2680,
+    fee: 134,
+    aiCost: 4,
+    manualCost: 36,
+    capitalCost: 10,
+    status: "待任务确认",
+    risk: "低",
+    request: "飞书采购群中 @HELPBUY：请按链接采购 14 盆绿植，明天下班前送至前台并摆放。",
+    question: "收货人电话未在消息中给出，AI 已创建待补充项。",
+    confidence: 98,
+    scanScope: "仅采集已授权群内 @HELPBUY 的消息、附件与引用上下文",
+    summary: "商品链接、数量和交期已识别；建议进入电商下单路径。",
+  },
+  "微信导入": {
+    customer: "汇景品牌工作室",
+    route: "仅代付",
+    source: "微信导入 · 转发聊天记录 + 付款截图",
+    product: "线下活动场地制作服务",
+    specs: "供应商、金额与付款依据已在导入内容中确认",
+    quantity: "1 项",
+    delivery: "按活动节点交付",
+    amount: 18000,
+    fee: 540,
+    aiCost: 5,
+    manualCost: 42,
+    capitalCost: 72,
+    status: "待任务确认",
+    risk: "中",
+    request: "运营人员导入客户转发的微信聊天记录和付款截图：供应商与金额已谈妥，需要代为付款。",
+    question: "付款截图中的合同编号需与附件再次核验。",
+    confidence: 91,
+    scanScope: "仅处理运营人员主动导入或客户转发的微信内容，不读取私人聊天",
+    summary: "已匹配供应商、金额和付款依据；建议进入仅代付路径。",
+  },
+  "文件 / 图片": {
+    customer: "瑞达科技园",
+    route: "直接采购",
+    source: "文件上传 · 合同 PDF + 采购清单图片",
+    product: "门禁系统配件",
+    specs: "读卡器、控制器、电源模块；含安装调试",
+    quantity: "22 个 SKU",
+    delivery: "分两批，首批 7 天内",
+    amount: 33600,
+    fee: 1344,
+    aiCost: 13,
+    manualCost: 180,
+    capitalCost: 145,
+    status: "待任务确认",
+    risk: "中",
+    request: "上传的合同 PDF 和采购清单图片显示：供应商及单价已确定，需按两批交期执行并跟进安装。",
+    question: "AI 发现 2 个 SKU 的图片文字置信度偏低，需要人工核对型号。",
+    confidence: 89,
+    scanScope: "仅解析本次主动上传的文件和图片，并保留原始证据",
+    summary: "已匹配合同供应商和清单金额；建议进入直接采购路径。",
+  },
+};
+
 const money = (amount: number) =>
   new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY", maximumFractionDigits: 0 }).format(amount);
 
@@ -139,6 +234,10 @@ export default function DemoPage() {
   const [selectedId, setSelectedId] = useState(seedOrders[0].id);
   const [filter, setFilter] = useState<"全部" | OrderStatus>("全部");
   const [isParsing, setIsParsing] = useState(false);
+  const [intakeSource, setIntakeSource] = useState<IntakeSource>("采购邮箱");
+  const [isScanning, setIsScanning] = useState(false);
+  const [intakeRun, setIntakeRun] = useState(0);
+  const [candidate, setCandidate] = useState<IntakeCandidate | null>(null);
   const [notice, setNotice] = useState("演示模式：所有数据和操作均为虚构，不会触发真实采购或付款。");
 
   const selected = orders.find((order) => order.id === selectedId) ?? orders[0];
@@ -177,10 +276,36 @@ export default function DemoPage() {
     setNotice(`${selected.id} 已模拟推进至“${nextStatus}”。此操作仅改变本页假数据。`);
   }
 
+  function scanIntake() {
+    setIsScanning(true);
+    setCandidate(null);
+    setNotice(`AI 正在按授权范围扫描${intakeSource}中的新增采购需求…`);
+    window.setTimeout(() => {
+      const template = intakeTemplates[intakeSource];
+      const nextRun = intakeRun + 1;
+      setIntakeRun(nextRun);
+      setCandidate({ ...template, id: `HB-260729-${String(900 + nextRun).padStart(3, "0")}` });
+      setIsScanning(false);
+      setNotice(`AI 已识别 1 条${intakeSource}候选需求，等待确认后才会进入任务池。`);
+    }, 900);
+  }
+
+  function addCandidateToQueue() {
+    if (!candidate) return;
+    setOrders((current) => [candidate, ...current]);
+    setSelectedId(candidate.id);
+    setFilter("全部");
+    setCandidate(null);
+    setNotice(`${candidate.id} 已由 AI 草稿进入任务池，运营人员可继续确认和执行。`);
+  }
+
   function resetDemo() {
     setOrders(seedOrders);
     setSelectedId(seedOrders[0].id);
     setFilter("全部");
+    setCandidate(null);
+    setIsScanning(false);
+    setIntakeRun(0);
     setNotice("演示已重置为初始假数据。");
   }
 
@@ -196,7 +321,7 @@ export default function DemoPage() {
         <div>
           <p className="demo-eyebrow">AI PROCUREMENT EXECUTION · OPERATIONS SIMULATOR</p>
           <h1>一名运营，如何在同一屏推进多类代采任务</h1>
-          <p>从文件、合同和群聊中提取需求，按任务路径推进确认、付款、下单、履约与结算。</p>
+          <p>从采购邮箱、飞书群、微信导入、文件与合同中提取需求，按任务路径推进确认、付款、下单、履约与结算。</p>
         </div>
         <div className="demo-kpis" aria-label="经营看板假数据">
           <article><span>今日订单</span><strong>{orders.length}</strong><small>含 {orders.filter((order) => order.status !== "已完成").length} 笔在途</small></article>
@@ -204,6 +329,32 @@ export default function DemoPage() {
           <article><span>服务收入</span><strong>{money(metrics.revenue)}</strong><small>按假设费率计算</small></article>
           <article><span>贡献利润</span><strong className={metrics.profit > 0 ? "positive" : "negative"}>{money(metrics.profit)}</strong><small>已扣 AI、人工与资金成本</small></article>
         </div>
+      </section>
+
+      <section className="intake-center" aria-label="AI 需求采集中心">
+        <div className="intake-head">
+          <div>
+            <p className="demo-eyebrow">AI INTAKE CENTER</p>
+            <h2>从外部输入中识别采购需求</h2>
+            <p>只扫描已授权入口；微信内容仅支持主动导入或转发，不读取私人聊天。</p>
+          </div>
+          <div className="intake-status"><span>扫描范围</span><b>{intakeTemplates[intakeSource].scanScope}</b></div>
+        </div>
+        <div className="intake-controls">
+          <div className="intake-sources" aria-label="需求来源选择">
+            {(Object.keys(intakeTemplates) as IntakeSource[]).map((source) => (
+              <button className={intakeSource === source ? "active" : ""} key={source} onClick={() => { setIntakeSource(source); setCandidate(null); }} disabled={isScanning}>{source}</button>
+            ))}
+          </div>
+          <button className="scan-action" onClick={scanIntake} disabled={isScanning}>{isScanning ? "AI 扫描中…" : `扫描${intakeSource}（模拟）`} <span>→</span></button>
+        </div>
+        {candidate ? (
+          <article className="candidate-card">
+            <div className="candidate-title"><p>AI 发现候选需求</p><h3>{candidate.product}</h3><span>{candidate.source}</span></div>
+            <div className="candidate-summary"><span>识别结果</span><p>{candidate.summary}</p><dl><div><dt>识别置信度</dt><dd>{candidate.confidence}%</dd></div><div><dt>推荐路径</dt><dd>{candidate.route}</dd></div><div><dt>预估金额</dt><dd>{money(candidate.amount)}</dd></div></dl></div>
+            <button className="admit-action" onClick={addCandidateToQueue}>生成任务草稿并加入任务池 <span>→</span></button>
+          </article>
+        ) : <p className="intake-empty">选择一个已授权输入入口，点击扫描后查看 AI 候选任务。</p>}
       </section>
 
       <div className="demo-layout">
