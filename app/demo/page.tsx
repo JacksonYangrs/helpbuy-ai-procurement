@@ -262,6 +262,7 @@ export default function DemoPage() {
   const [candidate, setCandidate] = useState<IntakeCandidate | null>(null);
   const [editDraft, setEditDraft] = useState<Order | null>(null);
   const [isBrowserLaunching, setIsBrowserLaunching] = useState(false);
+  const [browserStep, setBrowserStep] = useState(0);
   const [notice, setNotice] = useState("演示模式：所有数据和操作均为虚构，不会触发真实采购或付款。");
 
   const selected = orders.find((order) => order.id === selectedId) ?? orders[0];
@@ -352,9 +353,40 @@ export default function DemoPage() {
     setNotice("正在模拟打开独立浏览器会话：AI 将填入已确认的商品、数量、地址与发票信息…");
     window.setTimeout(() => {
       setIsBrowserLaunching(false);
-      setNotice("受控浏览器会话已就绪：运营人员登录第三方平台、处理验证码，并在付款前回到 HELPBUY 完成逐单审核。 ");
+      setBrowserStep(1);
+      setNotice("受控浏览器会话已就绪：运营人员登录第三方平台、处理验证码；账号密码不会进入 HELPBUY。 ");
     }, 850);
   }
+
+  function advanceBrowser() {
+    if (browserStep === 0) { launchBrowser(); return; }
+    if (browserStep === 1) {
+      setBrowserStep(2);
+      setNotice("AI 已将已确认的商品、规格、数量、地址和发票信息填入第三方订单页，等待运营人员核对。");
+      return;
+    }
+    if (browserStep === 2) {
+      setBrowserStep(3);
+      setOrders((current) => current.map((order) => order.id === selected.id ? { ...order, status: "待付款" } : order));
+      setNotice("第三方已创建待支付订单；订单号、应付金额和收款主体已回写，进入 HELPBUY 逐单付款审核。");
+      return;
+    }
+    if (browserStep === 3) {
+      setBrowserStep(4);
+      setNotice("付款审核已通过：锁定第三方订单号、金额、收款主体和资金账户，允许一次支付操作。");
+      return;
+    }
+    if (browserStep === 4) {
+      setBrowserStep(5);
+      setOrders((current) => current.map((order) => order.id === selected.id ? { ...order, status: "执行中" } : order));
+      setNotice("运营人员已在第三方支付页完成扫码或企业网银确认；支付回单已读取并回写任务。");
+      return;
+    }
+    setBrowserStep(6);
+    setNotice("订单号、支付流水、物流订阅和操作证据已归档；任务进入履约跟踪。");
+  }
+
+  const browserActionLabel = ["启动受控浏览器会话", "AI 填写并核对订单", "提交第三方待支付订单", "查看并通过付款审核", "模拟人工支付确认", "归档回写结果"][browserStep] ?? "已完成回写";
 
   function resetDemo() {
     setOrders(seedOrders);
@@ -365,6 +397,7 @@ export default function DemoPage() {
     setIntakeRun(0);
     setEditDraft(null);
     setIsBrowserLaunching(false);
+    setBrowserStep(0);
     setNotice("演示已重置为初始假数据。");
   }
 
@@ -394,27 +427,12 @@ export default function DemoPage() {
         <div className="intake-head">
           <div>
             <p className="demo-eyebrow">AI INTAKE CENTER</p>
-            <h2>从外部输入中识别采购需求</h2>
-            <p>连接器按计划自动扫描已授权入口并直接归集任务；人工只在执行前核对、修正与确认。</p>
+            <h2>后台自动采集与任务归集</h2>
+            <p>采集连接器在后台按计划运行；无需运营人员手动选择来源或触发扫描。</p>
           </div>
-          <div className="intake-status"><span>扫描范围</span><b>{intakeTemplates[intakeSource].scanScope}</b></div>
+          <div className="intake-status"><span>当前策略</span><b>去重、保留原始证据、结构化识别后自动进入“AI 待确认”</b></div>
         </div>
-        <div className="automation-strip"><div><span>定时自动采集</span><b>{autoIntake ? "已启用" : "已暂停"}</b><small>已配置：采购邮箱、飞书采购群、供应商门户 · 每日 09:00 扫描 · 新需求自动进入“AI 待确认”</small></div><button onClick={() => setAutoIntake((current) => !current)}>{autoIntake ? "暂停自动采集" : "启用自动采集"}</button></div>
-        <div className="intake-controls">
-          <div className="intake-sources" aria-label="需求来源选择">
-            {(Object.keys(intakeTemplates) as IntakeSource[]).map((source) => (
-              <button className={intakeSource === source ? "active" : ""} key={source} onClick={() => { setIntakeSource(source); setCandidate(null); }} disabled={isScanning}>{source}</button>
-            ))}
-          </div>
-          <button className="scan-action" onClick={scanIntake} disabled={isScanning}>{isScanning ? "AI 扫描中…" : `扫描${intakeSource}（模拟）`} <span>→</span></button>
-        </div>
-        {candidate ? (
-          <article className="candidate-card">
-            <div className="candidate-title"><p>AI 已自动归集至任务池</p><h3>{candidate.product}</h3><span>{candidate.source} · 状态：AI 待确认</span></div>
-            <div className="candidate-summary"><span>识别结果</span><p>{candidate.summary}</p><dl><div><dt>识别置信度</dt><dd>{candidate.confidence}%</dd></div><div><dt>推荐路径</dt><dd>{candidate.route}</dd></div><div><dt>预估金额</dt><dd>{money(candidate.amount)}</dd></div></dl></div>
-            <button className="admit-action" onClick={viewCandidate}>查看任务草稿并确认 <span>→</span></button>
-          </article>
-        ) : <p className="intake-empty">选择一个已授权输入入口，模拟计划扫描；AI 会直接把新需求放入任务池，等待执行前确认。</p>}
+        <div className="connector-grid"><article><span>采购邮箱</span><b>运行中</b><small>每 10 分钟同步新邮件及附件</small></article><article><span>飞书采购群</span><b>运行中</b><small>采集已授权群的 @HELPBUY 消息与附件</small></article><article><span>供应商门户</span><b>运行中</b><small>同步已签约渠道的新采购申请</small></article><article><span>任务归集</span><b>自动入池</b><small>上次扫描 09:00 · 新任务进入 AI 待确认</small></article></div>
       </section>
 
       <div className="demo-layout">
@@ -425,7 +443,7 @@ export default function DemoPage() {
           </div>
           <div className="order-list">
             {visibleOrders.map((order) => (
-              <button className={`order-card ${selected.id === order.id ? "selected" : ""}`} key={order.id} onClick={() => { setSelectedId(order.id); setEditDraft(null); }}>
+              <button className={`order-card ${selected.id === order.id ? "selected" : ""}`} key={order.id} onClick={() => { setSelectedId(order.id); setEditDraft(null); setBrowserStep(0); }}>
                 <div><span className={`route-badge ${routeTone[order.route]}`}>{order.route}</span><time>{order.status}</time></div>
                 <strong>{order.product}</strong>
                 <p>{order.customer}</p>
@@ -470,7 +488,14 @@ export default function DemoPage() {
               <div className="card-title"><span>03</span><h3>下一步执行</h3></div>
               <p>AI 根据订单路径和当前状态生成操作建议；运营只需核对关键规格和付款依据。</p>
               <div className="action-summary"><span>当前路径</span><b>{selected.route}</b><span>服务费</span><b>{money(selected.fee)}</b></div>
-              <div className="browser-lane"><span>受控浏览器执行通道</span><p>独立企业会话 · AI 填单 · 人工登录/验证码 · 付款前逐单审核</p><button onClick={launchBrowser} disabled={isBrowserLaunching || selected.status === "AI 待确认"}>{isBrowserLaunching ? "浏览器会话启动中…" : selected.status === "AI 待确认" ? "确认 AI 结果后可执行" : "打开受控浏览器（模拟）"}</button></div>
+              <div className="browser-lane">
+                <div className="browser-lane-head"><div><span>受控浏览器执行通道</span><p>第三方无 API 时的标准执行路径；账号密码、验证码和扫码动作不进入 HELPBUY。</p></div><b>模拟流程</b></div>
+                <div className="browser-steps">{["建立会话", "AI 填单", "创建待支付单", "付款审核", "人工支付确认", "结果回写"].map((label, index) => <div className={browserStep > index ? "done" : browserStep === index ? "active" : ""} key={label}><i>{browserStep > index ? "✓" : index + 1}</i><span>{label}</span></div>)}</div>
+                <div className="browser-window"><div className="browser-window-bar"><i /><i /><i /><b>第三方企业采购网站 · 受控会话</b><span>会话隔离</span></div><div className="browser-order-preview"><div><small>AI 填单内容</small><strong>{selected.product}</strong><p>{selected.specs}</p></div><dl><div><dt>数量</dt><dd>{selected.quantity}</dd></div><div><dt>应付金额</dt><dd>{money(selected.amount)}</dd></div><div><dt>收货地址</dt><dd>成都中心前台（已确认）</dd></div><div><dt>发票</dt><dd>企业普票（已确认）</dd></div></dl></div></div>
+                {browserStep >= 3 && <div className="payment-review"><div><span>HELPBUY 付款审核单 · 每单必审</span><b>第三方订单：HB-EXT-{selected.id.slice(-3)} · {money(selected.amount)}</b></div><p>审核锁定：订单号、金额、收款主体与资金账户。任一字段变化，自动退回重新审核。</p></div>}
+                {browserStep >= 5 && <div className="payment-receipt"><span>✓ 第三方支付回执已获取</span><b>支付流水：PAY-{selected.id.slice(-3)}-20260729</b><small>已回写任务、垫资台账与物流订阅</small></div>}
+                <button className="browser-action" onClick={advanceBrowser} disabled={isBrowserLaunching || selected.status === "AI 待确认"}>{isBrowserLaunching ? "浏览器会话启动中…" : selected.status === "AI 待确认" ? "确认 AI 结果后可执行" : browserActionLabel} <span>→</span></button>
+              </div>
               <button className="main-action" onClick={moveOrder}>{nextAction} <span>→</span></button>
               <small>仅模拟状态变更，不会发送款项或创建真实订单。</small>
             </article>

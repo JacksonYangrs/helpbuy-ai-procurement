@@ -24,6 +24,7 @@ let intakeScanning = false;
 let autoIntake = true;
 let editing = false;
 let editDraft = null;
+let browserStep = 0;
 const money = value => new Intl.NumberFormat("zh-CN", { style:"currency", currency:"CNY", maximumFractionDigits:0 }).format(value);
 const $ = id => document.getElementById(id);
 const selected = () => orders.find(order => order.id === selectedId);
@@ -52,7 +53,7 @@ function renderQueue() {
   $("filters").innerHTML = ["全部"].concat(statuses).map(item => '<button class="' + (filter === item ? "active" : "") + '" data-filter="' + item + '">' + item + "</button>").join("");
   $("orders").innerHTML = visible().map(order => '<button class="order ' + (order.id === selectedId ? "selected" : "") + '" data-id="' + order.id + '"><div><span class="route">' + order.route + "</span><time>" + order.status + "</time></div><strong>" + order.product + "</strong><p>" + order.customer + '</p><footer><span class="risk ' + order.risk + '">' + order.risk + "</span><b>" + money(order.amount) + "</b></footer></button>").join("");
   document.querySelectorAll("[data-filter]").forEach(button => button.addEventListener("click", () => { filter = button.dataset.filter; render(); }));
-  document.querySelectorAll("[data-id]").forEach(button => button.addEventListener("click", () => { selectedId = button.dataset.id; editing = false; editDraft = null; render(); }));
+  document.querySelectorAll("[data-id]").forEach(button => button.addEventListener("click", () => { selectedId = button.dataset.id; editing = false; editDraft = null; browserStep = 0; render(); }));
 }
 
 function actionText(order) {
@@ -62,6 +63,22 @@ function actionText(order) {
   if (order.status === "执行中") return "模拟下单完成";
   if (order.status === "履约中") return "模拟验收完成";
   return "订单已完成";
+}
+
+function renderBrowser(order) {
+  const labels = ["建立会话", "AI 填单", "创建待支付单", "付款审核", "人工支付确认", "结果回写"];
+  $("browser-steps").innerHTML = labels.map((label, index) => '<div class="' + (browserStep > index ? "done" : browserStep === index ? "active" : "") + '"><i>' + (browserStep > index ? "✓" : index + 1) + "</i><span>" + label + "</span></div>").join("");
+  $("browser-product").textContent = order.product;
+  $("browser-specs").textContent = order.specs;
+  $("browser-quantity").textContent = order.quantity;
+  $("browser-amount").textContent = money(order.amount);
+  $("payment-review").hidden = browserStep < 3;
+  $("payment-receipt").hidden = browserStep < 5;
+  $("payment-order").textContent = "第三方订单：HB-EXT-" + order.id.slice(-3) + " · " + money(order.amount);
+  $("payment-receipt-id").textContent = "支付流水：PAY-" + order.id.slice(-3) + "-20260729";
+  const labelsByStep = ["启动受控浏览器会话", "AI 填写并核对订单", "提交第三方待支付订单", "查看并通过付款审核", "模拟人工支付确认", "归档回写结果"];
+  $("browser").disabled = order.status === "AI 待确认";
+  $("browser").innerHTML = (order.status === "AI 待确认" ? "确认 AI 结果后可执行" : labelsByStep[browserStep] || "已完成回写") + " <span>→</span>";
 }
 
 function renderWorkbench() {
@@ -86,8 +103,7 @@ function renderWorkbench() {
   $("action-route").textContent = order.route;
   $("fee").textContent = money(order.fee);
   $("next").innerHTML = actionText(order) + " <span>→</span>";
-  $("browser").disabled = order.status === "AI 待确认";
-  $("browser").textContent = order.status === "AI 待确认" ? "确认 AI 结果后可执行" : "打开受控浏览器（模拟）";
+  renderBrowser(order);
   if (editing) {
     document.querySelectorAll("[data-edit-field]").forEach(input => input.addEventListener("input", () => {
       const field = input.dataset.editField;
@@ -104,28 +120,7 @@ function renderTower() {
   }).join("");
 }
 
-function renderIntake() {
-  const option = intake();
-  $("intake-sources").innerHTML = intakeOptions.map(item => '<button class="' + (item.key === intakeKey ? "active" : "") + '" data-intake-source="' + item.key + '"' + (intakeScanning ? " disabled" : "") + ">" + item.label + "</button>").join("");
-  $("scan-scope").textContent = option.scope;
-  $("auto-intake-state").textContent = autoIntake ? "已启用" : "已暂停";
-  $("toggle-auto-intake").textContent = autoIntake ? "暂停自动采集" : "启用自动采集";
-  $("scan").disabled = intakeScanning;
-  $("scan").innerHTML = intakeScanning ? "AI 扫描中…" : "扫描" + option.label + "（模拟） <span>→</span>";
-  $("candidate").hidden = !intakeCandidate;
-  $("intake-empty").hidden = Boolean(intakeCandidate);
-  if (intakeCandidate) {
-    $("candidate-product").textContent = intakeCandidate.product;
-    $("candidate-source").textContent = intakeCandidate.source + " · 状态：AI 待确认";
-    $("candidate-summary").textContent = intakeCandidate.summary;
-    $("candidate-confidence").textContent = intakeCandidate.confidence + "%";
-    $("candidate-route").textContent = intakeCandidate.route;
-    $("candidate-amount").textContent = money(intakeCandidate.amount);
-  }
-  document.querySelectorAll("[data-intake-source]").forEach(button => button.addEventListener("click", () => { intakeKey = button.dataset.intakeSource; intakeCandidate = null; renderIntake(); }));
-}
-
-function render() { renderMetrics(); renderQueue(); renderWorkbench(); renderTower(); renderIntake(); }
+function render() { renderMetrics(); renderQueue(); renderWorkbench(); renderTower(); }
 
 $("parse").addEventListener("click", () => {
   const button = $("parse");
@@ -158,38 +153,20 @@ $("edit-draft").addEventListener("click", () => {
 $("browser").addEventListener("click", () => {
   const order = selected();
   if (order.status === "AI 待确认") { setNotice("请先核对并确认 AI 结果；确认后才可打开受控浏览器执行通道。"); return; }
-  const button = $("browser");
-  button.disabled = true;
-  button.textContent = "浏览器会话启动中…";
-  setNotice("正在模拟打开独立浏览器会话：AI 将填入已确认的商品、数量、地址与发票信息…");
-  window.setTimeout(() => { renderWorkbench(); setNotice("受控浏览器会话已就绪：运营人员登录第三方平台、处理验证码，并在付款前回到 HELPBUY 完成逐单审核。"); }, 850);
+  if (browserStep === 0) {
+    $("browser").disabled = true;
+    $("browser").textContent = "浏览器会话启动中…";
+    setNotice("正在启动独立企业浏览器会话；运营人员在第三方页面登录，账号密码不会进入 HELPBUY。");
+    window.setTimeout(() => { browserStep = 1; renderWorkbench(); setNotice("受控浏览器会话已就绪：请处理第三方登录、验证码或二次验证。"); }, 850);
+    return;
+  }
+  if (browserStep === 1) { browserStep = 2; setNotice("AI 已将已确认的商品、规格、数量、地址和发票信息填入第三方订单页，等待运营人员核对。"); renderWorkbench(); return; }
+  if (browserStep === 2) { browserStep = 3; order.status = "待付款"; setNotice("第三方已创建待支付订单；订单号、应付金额和收款主体已回写，进入 HELPBUY 逐单付款审核。"); render(); return; }
+  if (browserStep === 3) { browserStep = 4; setNotice("付款审核已通过：锁定第三方订单号、金额、收款主体和资金账户，允许一次支付操作。"); renderWorkbench(); return; }
+  if (browserStep === 4) { browserStep = 5; order.status = "执行中"; setNotice("运营人员已在第三方支付页完成扫码或企业网银确认；支付回单已读取并回写任务。"); render(); return; }
+  browserStep = 6;
+  setNotice("订单号、支付流水、物流订阅和操作证据已归档；任务进入履约跟踪。");
+  renderWorkbench();
 });
-$("scan").addEventListener("click", () => {
-  if (intakeScanning) return;
-  intakeScanning = true;
-  intakeCandidate = null;
-  renderIntake();
-  setNotice("AI 正在按授权范围扫描" + intake().label + "中的新增采购需求…");
-  window.setTimeout(() => {
-    const option = intake();
-    intakeRun += 1;
-    intakeCandidate = { ...option, id:"HB-260729-" + String(900 + intakeRun).padStart(3, "0"), status:"AI 待确认" };
-    orders.unshift(intakeCandidate);
-    selectedId = intakeCandidate.id;
-    filter = "全部";
-    intakeScanning = false;
-    render();
-    setNotice("AI 已识别 1 条" + option.label + "需求并自动进入任务池，状态为“AI 待确认”。");
-  }, 900);
-});
-$("admit").addEventListener("click", () => {
-  if (!intakeCandidate) return;
-  selectedId = intakeCandidate.id;
-  filter = "全部";
-  setNotice(intakeCandidate.id + " 已在任务池中打开；请核对原始需求与 AI 结果后确认执行。");
-  intakeCandidate = null;
-  render();
-});
-$("toggle-auto-intake").addEventListener("click", () => { autoIntake = !autoIntake; renderIntake(); setNotice(autoIntake ? "定时自动采集已启用：新需求将自动归集至 AI 待确认任务池。" : "定时自动采集已暂停：已配置来源不会继续自动归集。 "); });
 $("reset").addEventListener("click", () => window.location.reload());
 render();
