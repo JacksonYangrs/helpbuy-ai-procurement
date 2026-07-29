@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 
-type OrderStatus = "待任务确认" | "待付款" | "执行中" | "履约中" | "已完成";
+type OrderStatus = "AI 待确认" | "已确认待执行" | "待付款" | "执行中" | "履约中" | "已完成";
 
 type Order = {
   id: string;
@@ -24,7 +24,7 @@ type Order = {
   question: string;
 };
 
-type IntakeSource = "采购邮箱" | "飞书采购群" | "微信导入" | "文件 / 图片";
+type IntakeSource = "采购邮箱" | "飞书采购群" | "微信导入" | "第三方渠道" | "文件 / 图片";
 
 type IntakeCandidate = Order & {
   confidence: number;
@@ -47,7 +47,7 @@ const seedOrders: Order[] = [
     aiCost: 11,
     manualCost: 175,
     capitalCost: 86,
-    status: "待任务确认",
+    status: "AI 待确认",
     risk: "中",
     request: "成都中心行政发来采购清单：中心排风扇 12 台，要求送货上门并在下周完成安装。",
     question: "需确认风量和是否含安装服务，AI 已标记为待确认项。",
@@ -130,7 +130,7 @@ const seedOrders: Order[] = [
   },
 ];
 
-const statuses: OrderStatus[] = ["待任务确认", "待付款", "执行中", "履约中", "已完成"];
+const statuses: OrderStatus[] = ["AI 待确认", "已确认待执行", "待付款", "执行中", "履约中", "已完成"];
 
 const routeTone: Record<string, string> = {
   "仅代付": "payment",
@@ -153,7 +153,7 @@ const intakeTemplates: Record<IntakeSource, Omit<IntakeCandidate, "id">> = {
     aiCost: 9,
     manualCost: 110,
     capitalCost: 48,
-    status: "待任务确认",
+    status: "AI 待确认",
     risk: "中",
     request: "专用采购邮箱收到行政邮件及 Excel 附件：需要为新办公区采购 8 台空气净化器，预算不超过 1.3 万元。",
     question: "附件未说明 CADR 指标，AI 已标记为待确认项。",
@@ -174,7 +174,7 @@ const intakeTemplates: Record<IntakeSource, Omit<IntakeCandidate, "id">> = {
     aiCost: 4,
     manualCost: 36,
     capitalCost: 10,
-    status: "待任务确认",
+    status: "AI 待确认",
     risk: "低",
     request: "飞书采购群中 @HELPBUY：请按链接采购 14 盆绿植，明天下班前送至前台并摆放。",
     question: "收货人电话未在消息中给出，AI 已创建待补充项。",
@@ -195,13 +195,34 @@ const intakeTemplates: Record<IntakeSource, Omit<IntakeCandidate, "id">> = {
     aiCost: 5,
     manualCost: 42,
     capitalCost: 72,
-    status: "待任务确认",
+    status: "AI 待确认",
     risk: "中",
     request: "运营人员导入客户转发的微信聊天记录和付款截图：供应商与金额已谈妥，需要代为付款。",
     question: "付款截图中的合同编号需与附件再次核验。",
     confidence: 91,
     scanScope: "仅处理运营人员主动导入或客户转发的微信内容，不读取私人聊天",
     summary: "已匹配供应商、金额和付款依据；建议进入仅代付路径。",
+  },
+  "第三方渠道": {
+    customer: "远峰共享服务中心",
+    route: "电商下单",
+    source: "授权供应商门户 · 新建采购申请",
+    product: "会议区地毯与防滑垫",
+    specs: "阻燃耐磨；含上门铺设；指定灰色系",
+    quantity: "320 ㎡",
+    delivery: "10 个工作日内",
+    amount: 28700,
+    fee: 1148,
+    aiCost: 12,
+    manualCost: 146,
+    capitalCost: 126,
+    status: "AI 待确认",
+    risk: "中",
+    request: "已授权的供应商门户产生新采购申请：会议区地毯与防滑垫，要求按指定颜色、面积和工期执行。",
+    question: "门户仅同步了面积区间，AI 建议在执行前确认现场最终测量结果。",
+    confidence: 93,
+    scanScope: "仅同步已签约第三方门户中新增、并授权给 HELPBUY 的采购申请",
+    summary: "已识别商品类别、预算和交期；建议经受控浏览器或正式接口创建订单。",
   },
   "文件 / 图片": {
     customer: "瑞达科技园",
@@ -216,7 +237,7 @@ const intakeTemplates: Record<IntakeSource, Omit<IntakeCandidate, "id">> = {
     aiCost: 13,
     manualCost: 180,
     capitalCost: 145,
-    status: "待任务确认",
+    status: "AI 待确认",
     risk: "中",
     request: "上传的合同 PDF 和采购清单图片显示：供应商及单价已确定，需按两批交期执行并跟进安装。",
     question: "AI 发现 2 个 SKU 的图片文字置信度偏低，需要人工核对型号。",
@@ -235,9 +256,12 @@ export default function DemoPage() {
   const [filter, setFilter] = useState<"全部" | OrderStatus>("全部");
   const [isParsing, setIsParsing] = useState(false);
   const [intakeSource, setIntakeSource] = useState<IntakeSource>("采购邮箱");
+  const [autoIntake, setAutoIntake] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
   const [intakeRun, setIntakeRun] = useState(0);
   const [candidate, setCandidate] = useState<IntakeCandidate | null>(null);
+  const [editDraft, setEditDraft] = useState<Order | null>(null);
+  const [isBrowserLaunching, setIsBrowserLaunching] = useState(false);
   const [notice, setNotice] = useState("演示模式：所有数据和操作均为虚构，不会触发真实采购或付款。");
 
   const selected = orders.find((order) => order.id === selectedId) ?? orders[0];
@@ -253,8 +277,9 @@ export default function DemoPage() {
   const progress = statuses.indexOf(selected.status);
   const nextStatus = statuses[progress + 1];
   const nextAction =
-    selected.status === "待任务确认" ? "确认任务并进入执行" :
-    selected.status === "待付款" ? "模拟付款" :
+    selected.status === "AI 待确认" ? "确认 AI 结果并纳入执行清单" :
+    selected.status === "已确认待执行" ? "生成待支付订单 / 执行指令" :
+    selected.status === "待付款" ? "付款审核通过并模拟付款" :
     selected.status === "执行中" ? "模拟下单完成" :
     selected.status === "履约中" ? "模拟验收完成" : "订单已完成";
 
@@ -283,20 +308,52 @@ export default function DemoPage() {
     window.setTimeout(() => {
       const template = intakeTemplates[intakeSource];
       const nextRun = intakeRun + 1;
+      const newTask = { ...template, id: `HB-260729-${String(900 + nextRun).padStart(3, "0")}` };
       setIntakeRun(nextRun);
-      setCandidate({ ...template, id: `HB-260729-${String(900 + nextRun).padStart(3, "0")}` });
+      setCandidate(newTask);
+      setOrders((current) => [newTask, ...current]);
+      setSelectedId(newTask.id);
+      setFilter("全部");
       setIsScanning(false);
-      setNotice(`AI 已识别 1 条${intakeSource}候选需求，等待确认后才会进入任务池。`);
+      setNotice(`AI 已识别 1 条${intakeSource}需求并自动进入任务池，状态为“AI 待确认”。`);
     }, 900);
   }
 
-  function addCandidateToQueue() {
+  function viewCandidate() {
     if (!candidate) return;
-    setOrders((current) => [candidate, ...current]);
     setSelectedId(candidate.id);
     setFilter("全部");
     setCandidate(null);
-    setNotice(`${candidate.id} 已由 AI 草稿进入任务池，运营人员可继续确认和执行。`);
+    setNotice(`${candidate.id} 已在任务池中打开；请核对原始需求与 AI 结果后确认执行。`);
+  }
+
+  function startEditing() {
+    setEditDraft({ ...selected });
+    setNotice(`正在修改 ${selected.id} 的 AI 结构化结果；保存后再确认执行。`);
+  }
+
+  function updateEditField(field: "product" | "specs" | "quantity" | "delivery" | "question", value: string) {
+    setEditDraft((current) => current ? { ...current, [field]: value } : current);
+  }
+
+  function saveEdit() {
+    if (!editDraft) return;
+    setOrders((current) => current.map((order) => order.id === editDraft.id ? editDraft : order));
+    setEditDraft(null);
+    setNotice(`${selected.id} 的 AI 结构化结果已人工修正，仍需确认后才会执行。`);
+  }
+
+  function launchBrowser() {
+    if (selected.status === "AI 待确认") {
+      setNotice("请先核对并确认 AI 结果；确认后才可打开受控浏览器执行通道。");
+      return;
+    }
+    setIsBrowserLaunching(true);
+    setNotice("正在模拟打开独立浏览器会话：AI 将填入已确认的商品、数量、地址与发票信息…");
+    window.setTimeout(() => {
+      setIsBrowserLaunching(false);
+      setNotice("受控浏览器会话已就绪：运营人员登录第三方平台、处理验证码，并在付款前回到 HELPBUY 完成逐单审核。 ");
+    }, 850);
   }
 
   function resetDemo() {
@@ -306,6 +363,8 @@ export default function DemoPage() {
     setCandidate(null);
     setIsScanning(false);
     setIntakeRun(0);
+    setEditDraft(null);
+    setIsBrowserLaunching(false);
     setNotice("演示已重置为初始假数据。");
   }
 
@@ -336,10 +395,11 @@ export default function DemoPage() {
           <div>
             <p className="demo-eyebrow">AI INTAKE CENTER</p>
             <h2>从外部输入中识别采购需求</h2>
-            <p>只扫描已授权入口；微信内容仅支持主动导入或转发，不读取私人聊天。</p>
+            <p>连接器按计划自动扫描已授权入口并直接归集任务；人工只在执行前核对、修正与确认。</p>
           </div>
           <div className="intake-status"><span>扫描范围</span><b>{intakeTemplates[intakeSource].scanScope}</b></div>
         </div>
+        <div className="automation-strip"><div><span>定时自动采集</span><b>{autoIntake ? "已启用" : "已暂停"}</b><small>已配置：采购邮箱、飞书采购群、供应商门户 · 每日 09:00 扫描 · 新需求自动进入“AI 待确认”</small></div><button onClick={() => setAutoIntake((current) => !current)}>{autoIntake ? "暂停自动采集" : "启用自动采集"}</button></div>
         <div className="intake-controls">
           <div className="intake-sources" aria-label="需求来源选择">
             {(Object.keys(intakeTemplates) as IntakeSource[]).map((source) => (
@@ -350,11 +410,11 @@ export default function DemoPage() {
         </div>
         {candidate ? (
           <article className="candidate-card">
-            <div className="candidate-title"><p>AI 发现候选需求</p><h3>{candidate.product}</h3><span>{candidate.source}</span></div>
+            <div className="candidate-title"><p>AI 已自动归集至任务池</p><h3>{candidate.product}</h3><span>{candidate.source} · 状态：AI 待确认</span></div>
             <div className="candidate-summary"><span>识别结果</span><p>{candidate.summary}</p><dl><div><dt>识别置信度</dt><dd>{candidate.confidence}%</dd></div><div><dt>推荐路径</dt><dd>{candidate.route}</dd></div><div><dt>预估金额</dt><dd>{money(candidate.amount)}</dd></div></dl></div>
-            <button className="admit-action" onClick={addCandidateToQueue}>生成任务草稿并加入任务池 <span>→</span></button>
+            <button className="admit-action" onClick={viewCandidate}>查看任务草稿并确认 <span>→</span></button>
           </article>
-        ) : <p className="intake-empty">选择一个已授权输入入口，点击扫描后查看 AI 候选任务。</p>}
+        ) : <p className="intake-empty">选择一个已授权输入入口，模拟计划扫描；AI 会直接把新需求放入任务池，等待执行前确认。</p>}
       </section>
 
       <div className="demo-layout">
@@ -365,8 +425,8 @@ export default function DemoPage() {
           </div>
           <div className="order-list">
             {visibleOrders.map((order) => (
-              <button className={`order-card ${selected.id === order.id ? "selected" : ""}`} key={order.id} onClick={() => setSelectedId(order.id)}>
-                <div><span className={`route-badge ${routeTone[order.route]}`}>{order.route}</span><time>{order.id.slice(-3)}</time></div>
+              <button className={`order-card ${selected.id === order.id ? "selected" : ""}`} key={order.id} onClick={() => { setSelectedId(order.id); setEditDraft(null); }}>
+                <div><span className={`route-badge ${routeTone[order.route]}`}>{order.route}</span><time>{order.status}</time></div>
                 <strong>{order.product}</strong>
                 <p>{order.customer}</p>
                 <footer><span className={`risk ${order.risk === "低" ? "low" : order.risk === "中" ? "medium" : "watch"}`}>{order.risk}</span><b>{money(order.amount)}</b></footer>
@@ -395,21 +455,22 @@ export default function DemoPage() {
             </article>
 
             <article className="task-card structured-card">
-              <div className="card-title"><span>02</span><h3>AI 结构化任务草稿</h3><em>需人工确认</em></div>
+              <div className="card-title"><span>02</span><h3>AI 结构化任务草稿</h3>{editDraft ? <><button onClick={saveEdit}>保存修改</button><button className="text-button" onClick={() => setEditDraft(null)}>取消</button></> : <button onClick={startEditing}>编辑 AI 结果</button>}</div>
               <dl>
-                <div><dt>商品 / 服务</dt><dd>{selected.product}</dd></div>
-                <div><dt>规格</dt><dd>{selected.specs}</dd></div>
-                <div><dt>数量</dt><dd>{selected.quantity}</dd></div>
-                <div><dt>交期</dt><dd>{selected.delivery}</dd></div>
-                <div><dt>采购金额</dt><dd>{money(selected.amount)}</dd></div>
+                <div><dt>商品 / 服务</dt><dd>{editDraft ? <input value={editDraft.product} onChange={(event) => updateEditField("product", event.target.value)} /> : selected.product}</dd></div>
+                <div><dt>规格</dt><dd>{editDraft ? <input value={editDraft.specs} onChange={(event) => updateEditField("specs", event.target.value)} /> : selected.specs}</dd></div>
+                <div><dt>数量</dt><dd>{editDraft ? <input value={editDraft.quantity} onChange={(event) => updateEditField("quantity", event.target.value)} /> : selected.quantity}</dd></div>
+                <div><dt>交期</dt><dd>{editDraft ? <input value={editDraft.delivery} onChange={(event) => updateEditField("delivery", event.target.value)} /> : selected.delivery}</dd></div>
+                <div><dt>采购金额</dt><dd>{editDraft ? <input type="number" min="0" value={editDraft.amount} onChange={(event) => setEditDraft((current) => current ? { ...current, amount: Number(event.target.value) || 0 } : current)} /> : money(selected.amount)}</dd></div>
               </dl>
-              <p className="question"><b>待确认：</b>{selected.question}</p>
+              <p className="question"><b>待确认：</b>{editDraft ? <textarea value={editDraft.question} onChange={(event) => updateEditField("question", event.target.value)} /> : selected.question}</p>
             </article>
 
             <article className="task-card action-card">
               <div className="card-title"><span>03</span><h3>下一步执行</h3></div>
               <p>AI 根据订单路径和当前状态生成操作建议；运营只需核对关键规格和付款依据。</p>
               <div className="action-summary"><span>当前路径</span><b>{selected.route}</b><span>服务费</span><b>{money(selected.fee)}</b></div>
+              <div className="browser-lane"><span>受控浏览器执行通道</span><p>独立企业会话 · AI 填单 · 人工登录/验证码 · 付款前逐单审核</p><button onClick={launchBrowser} disabled={isBrowserLaunching || selected.status === "AI 待确认"}>{isBrowserLaunching ? "浏览器会话启动中…" : selected.status === "AI 待确认" ? "确认 AI 结果后可执行" : "打开受控浏览器（模拟）"}</button></div>
               <button className="main-action" onClick={moveOrder}>{nextAction} <span>→</span></button>
               <small>仅模拟状态变更，不会发送款项或创建真实订单。</small>
             </article>
