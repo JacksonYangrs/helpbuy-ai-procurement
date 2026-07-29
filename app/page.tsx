@@ -51,6 +51,7 @@ export default function Home() {
           <a href="#stages">三阶段路径</a>
           <a href="#product">产品方案</a>
           <a href="#ai">AI 与成本</a>
+          <a href="/design">技术设计</a>
           <a href="/demo">运行 DEMO</a>
         </div>
         <a className="nav-file" href="/document">
@@ -74,6 +75,7 @@ export default function Home() {
           <div className="hero-actions">
             <a className="button primary" href="#model">查看商业逻辑 <span>↓</span></a>
             <a className="button secondary" href="/demo">运行假数据 DEMO</a>
+            <a className="button secondary" href="/design">阅读技术设计</a>
           </div>
           <div className="metrics" aria-label="核心要点">
             <div><strong>3%</strong><span>起始服务费假设</span></div>
@@ -269,13 +271,16 @@ export default function Home() {
           用真实订单验证非标准输入解析、人工分钟/单、AI 全成本、动态服务费、资金占用与贡献利润。
           当这些数据证明业务可以盈利且可复制，HELPBUY 才进入规模化推广。
         </p>
-        <a className="button primary inverted" href="/document">阅读完整方案 <span>↗</span></a>
+        <div className="closing-actions">
+          <a className="button primary inverted" href="/document">阅读商业计划与 PRD <span>↗</span></a>
+          <a className="button secondary inverted-outline" href="/design">阅读产品与技术设计 <span>↗</span></a>
+        </div>
       </section>
 
       <footer>
         <a className="brand" href="#top">HELP<span>BUY</span></a>
-        <p>AI 代采购商业计划与产品需求文档 · V2.0</p>
-        <p>公开阅读版 · 2026-07-29</p>
+        <a href="/document">商业计划与 PRD · V2.0</a>
+        <a href="/design">产品与技术设计 · V1.0</a>
       </footer>
     </main>
   );
