@@ -7,8 +7,10 @@ HELPBUY 是面向代采执行团队的内部 AI 运营平台。它接受客户�
 ## 完整方案文档
 
 - [商业计划与产品需求文档（完整 PRD）](public/HELPBUY_PRD_V2_商业计划与产品方案.md)
+- [产品与技术设计文档](public/HELPBUY_产品与技术设计文档_V1.md)
 - [公开概览站](https://jacksonyangrs.github.io/helpbuy-ai-procurement/)
 - [完整 PRD 在线阅读](https://jacksonyangrs.github.io/helpbuy-ai-procurement/document/)
+- [产品与技术设计在线阅读](https://jacksonyangrs.github.io/helpbuy-ai-procurement/design/)
 - [交互式运营 Demo](https://jacksonyangrs.github.io/helpbuy-ai-procurement/demo/)
 
 ## 核心产品范围

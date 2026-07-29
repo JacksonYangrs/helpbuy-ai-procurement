@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HELPBUY｜产品与技术设计文档</title>
+    <link rel="stylesheet" href="../assets/site.css">
+  </head>
+  <body class="reader-body">
+    <header class="reader-nav">
+      <a class="brand" href="../">HELP<span>BUY</span></a>
+      <nav>
+        <a href="../">返回概览</a>
+        <a href="../document/">商业计划与 PRD</a>
+        <a class="download" href="../HELPBUY_产品与技术设计文档_V1.md" download>下载设计文档</a>
+      </nav>
+    </header>
+    <main class="reader reader-full">
+      <p class="eyebrow">PRODUCT &amp; TECHNICAL DESIGN · V1.0</p>
+      <h1>HELPBUY：产品与技术设计文档</h1>
+      <p class="reader-lead">模块划分、数据模型、执行通道、AI 技术路线、付款安全、研发阶段与技术难点分析。</p>
+      <p class="reader-source">文档以 UTF-8 原文加载；可使用右上角按钮下载完整 Markdown。</p>
+      <pre id="full-document" class="reader-markdown" aria-live="polite">正在加载设计文档…</pre>
+    </main>
+    <script>
+      const source = "../HELPBUY_产品与技术设计文档_V1.md";
+      const target = document.getElementById("full-document");
+      fetch(source)
+        .then((response) => {
+          if (!response.ok) throw new Error("无法读取设计文档");
+          return response.arrayBuffer();
+        })
+        .then((buffer) => {
+          const content = new TextDecoder("utf-8").decode(buffer).replace(/^\uFEFF/, "");
+          target.textContent = content;
+        })
+        .catch(() => {
+          target.textContent = "设计文档暂时无法加载。请使用右上角“下载设计文档”获取原文。";
+        });
+    </script>
+  </body>
+</html>

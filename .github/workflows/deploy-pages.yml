@@ -6,6 +6,7 @@ on:
     paths:
       - "docs/**"
       - "public/HELPBUY_PRD_V2_商业计划与产品方案.md"
+      - "public/HELPBUY_产品与技术设计文档_V1.md"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -30,6 +31,8 @@ jobs:
           enablement: true
       - name: Include full PRD source
         run: cp "public/HELPBUY_PRD_V2_商业计划与产品方案.md" "docs/HELPBUY_PRD_V2_商业计划与产品方案.md"
+      - name: Include full technical design source
+        run: cp "public/HELPBUY_产品与技术设计文档_V1.md" "docs/HELPBUY_产品与技术设计文档_V1.md"
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
