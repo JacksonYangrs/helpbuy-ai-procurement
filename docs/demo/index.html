@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>HELPBUY｜AI 运营台 DEMO</title><link rel="stylesheet" href="../assets/site.css"><script defer src="../assets/demo.js"></script></head>
+  <body class="demo-body">
+    <header class="demo-nav"><a class="brand" href="../">HELP<span>BUY</span><small>DEMO</small></a><span class="demo-mode"><i></i>演示数据模式 · 不连接真实供应商、支付或客户资料</span><button id="reset">重置演示</button></header>
+    <main class="demo-page">
+      <section class="demo-heading"><div><p class="eyebrow light">AI PROCUREMENT EXECUTION · OPERATIONS SIMULATOR</p><h1>一名运营，如何在同一屏推进多类代采任务</h1><p>从文件、合同和群聊中提取需求，按任务路径推进确认、付款、下单、履约与结算。</p></div><div class="kpis"><article><span>今日订单</span><strong id="order-count">0</strong><small>含在途订单</small></article><article><span>模拟 GMV</span><strong id="gmv">¥0</strong><small>五笔示例订单</small></article><article><span>服务收入</span><strong id="revenue">¥0</strong><small>按假设费率计算</small></article><article><span>贡献利润</span><strong id="profit">¥0</strong><small>已扣 AI、人工与资金成本</small></article></div></section>
+      <section class="demo-grid">
+        <aside class="queue"><div class="queue-head"><div><p class="eyebrow">任务池</p><h2>今日执行清单</h2></div><span id="queue-count">0 笔</span></div><div class="filters" id="filters"></div><div class="orders" id="orders"></div></aside>
+        <section class="workbench"><div class="workbench-head"><div><p class="eyebrow">AI EXECUTION WORKBENCH</p><h2 id="product-title"></h2><p id="product-meta"></p></div><span id="status" class="status"></span></div><div class="timeline" id="timeline"></div><p class="demo-notice" id="notice">演示模式：所有数据和操作均为虚构，不会触发真实采购或付款。</p><div class="task-grid"><article class="task source"><div class="task-title"><span>01</span><h3>原始需求</h3><button id="parse">模拟 AI 解析</button></div><p id="request" class="quote"></p><dl class="source-meta"><dt>输入来源</dt><dd id="source"></dd><dt>推荐路径</dt><dd id="route"></dd></dl></article><article class="task structured"><div class="task-title"><span>02</span><h3>AI 结构化任务草稿</h3><em>需人工确认</em></div><dl id="details"></dl><p class="question" id="question"></p></article><article class="task action"><div class="task-title"><span>03</span><h3>下一步执行</h3></div><p>AI 根据订单路径和当前状态生成操作建议；运营只需核对关键规格和付款依据。</p><div class="action-meta"><span>当前路径</span><b id="action-route"></b><span>服务费</span><b id="fee"></b></div><button id="next" class="next">推进模拟任务 <span>→</span></button><small>仅模拟状态变更，不会发送款项或创建真实订单。</small></article></div></section>
+        <aside class="tower"><p class="eyebrow">MANAGEMENT CONTROL TOWER</p><h2>经营控制塔</h2><article class="advance"><span>在途垫资</span><strong id="advance">¥0</strong><p id="advance-copy"></p></article><article class="routes"><h3>路径分布</h3><div id="route-stats"></div></article><article class="daily"><p>AI 日报摘要</p><strong>今日建议优先处理</strong><ul><li>确认“中心排风扇”的规格待确认项</li><li>完成 1 笔仅代付的付款依据复核</li><li>跟进窗帘改造的首批物流回传</li></ul></article><dl class="unit"><dt>AI 单均成本</dt><dd id="ai-cost"></dd><dt>模拟人效</dt><dd id="efficiency"></dd></dl></aside>
+      </section>
+    </main>
+  </body>
+</html>
