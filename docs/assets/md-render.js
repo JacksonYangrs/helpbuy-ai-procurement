@@ -94,7 +94,7 @@
             lineColor: "#4b6b7c",
             secondaryColor: "#f6f8f7",
             tertiaryColor: "#ffffff",
-            fontSize: "18px"
+            fontSize: "15px"
           },
           flowchart: { curve: "basis", htmlLabels: true, useMaxWidth: false },
           sequence: { useMaxWidth: false }

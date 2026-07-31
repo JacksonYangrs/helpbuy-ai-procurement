@@ -114,14 +114,14 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:20
 
 /* Mermaid 矢量图容器 */
 .md-figure { margin:22px 0; padding:22px 18px; overflow-x:auto; text-align:center; background:#f7fbfb; border:1px solid var(--line); border-radius:4px; }
-.md-figure .mermaid { display:inline-block; min-width:min(100%,780px); }
+.md-figure .mermaid { display:inline-block; min-width:min(100%,640px); }
 .md-figure svg { max-width:none; height:auto; }
 /* mermaid 矢量图文字放大，保证清晰可读（htmlLabels 走 div，需 CSS 兜底字号） */
 .md-figure .mermaid text,
 .md-figure .mermaid .nodeLabel,
 .md-figure .mermaid .edgeLabel,
 .md-figure .mermaid .label,
-.md-figure .mermaid .cluster-label { font-size:16px !important; }
+.md-figure .mermaid .cluster-label { font-size:14px !important; }
 
 @media (max-width:600px) {
   .md-body { padding:16px 13px; font-size:14px; }
