@@ -56,3 +56,70 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:20
 .reader-breadcrumb a:hover { text-decoration:underline; }
 .reader-breadcrumb span { margin:0 9px; color:rgb(140 160 170 /.7); }
 .reader-breadcrumb b { color:var(--ink); font-weight:700; }
+
+/* ============ Markdown 文档渲染排版 ============ */
+.md-body { padding:clamp(18px,3vw,34px); color:#243f50; font-size:14.5px; line-height:1.9; border:1px solid var(--line); background:#fff; }
+.md-body.is-loading { color:var(--muted); }
+.md-error { padding:16px; color:#8a4b2f; background:#fdf3ec; border:1px solid #f0d8c6; }
+
+/* 标题层级：靠字号 + 左侧色条区分，避免整篇一个色调 */
+.md-body .md-h { position:relative; scroll-margin-top:84px; color:var(--navy); letter-spacing:-.02em; }
+.md-body .md-h1 { margin:0 0 18px; padding-bottom:14px; font-size:27px; border-bottom:2px solid var(--navy); }
+.md-body .md-h2 { margin:44px 0 16px; padding:0 0 10px 13px; font-size:21px; border-bottom:1px solid var(--line); border-left:4px solid var(--teal); }
+.md-body .md-h3 { margin:30px 0 12px; padding-left:11px; font-size:16.5px; border-left:3px solid var(--aqua); }
+.md-body .md-h4 { margin:22px 0 10px; font-size:15px; color:var(--teal); }
+.md-body .md-h5,.md-body .md-h6 { margin:18px 0 8px; font-size:14px; color:var(--muted); }
+.md-anchor { position:absolute; left:-18px; color:rgb(8 129 125 /.32); font-weight:400; opacity:0; transition:opacity .15s ease; }
+.md-h:hover .md-anchor { opacity:1; }
+
+.md-body p { margin:12px 0; }
+.md-body ul,.md-body ol { margin:12px 0; padding-left:24px; }
+.md-body li { margin:5px 0; }
+.md-body li > ul,.md-body li > ol { margin:5px 0; }
+.md-body strong { color:var(--navy); font-weight:700; }
+.md-body a { color:var(--teal); text-decoration:underline; text-underline-offset:2px; }
+.md-body hr { margin:34px 0; border:0; border-top:1px solid var(--line); }
+.md-body img { max-width:100%; }
+
+/* 引用块：文档里大量 "> 说明/约定/变更" 需要一眼可辨 */
+.md-body blockquote { margin:16px 0; padding:13px 16px; color:#2c5a58; font-size:13.8px; background:#eef6f5; border-left:3px solid var(--teal); }
+.md-body blockquote p { margin:6px 0; }
+.md-body blockquote p:first-child { margin-top:0; }
+.md-body blockquote p:last-child { margin-bottom:0; }
+
+/* 行内代码 */
+.md-body code { padding:1.5px 5px; color:#0b6b68; font-family:"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace; font-size:.9em; background:#eef4f4; border:1px solid #dceaea; border-radius:3px; }
+
+/* 代码块 / ASCII 架构图：等宽 + 绝不折行 + 横向滚动，保证图形对齐不变形 */
+.md-pre { position:relative; margin:16px 0; background:#0f2c3f; border:1px solid #123a52; border-radius:4px; }
+.md-pre pre { margin:0; padding:16px 18px; overflow-x:auto; }
+.md-pre code { display:block; padding:0; color:#d6e9ee; font-family:"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace; font-size:12.6px; line-height:1.62; white-space:pre; background:none; border:0; border-radius:0; }
+.md-pre-tag { position:absolute; top:0; right:0; padding:3px 9px; color:rgb(144 229 222 /.75); font-size:10px; letter-spacing:.08em; text-transform:uppercase; background:rgb(255 255 255 /.06); }
+/* ASCII 框线图：浅底更接近"图纸"观感，且行高收紧让框线连成整体 */
+.md-pre.is-diagram { background:#f7fbfb; border-color:var(--line); }
+.md-pre.is-diagram code { color:#1d4257; font-size:12.4px; line-height:1.5; }
+.md-pre.is-diagram .md-pre-tag { color:var(--muted); background:rgb(9 38 59 /.05); }
+
+/* 表格：真表格 + 斑马纹 + 首列强调 + 窄屏横向滚动 */
+.md-table-scroll { margin:18px 0; overflow-x:auto; border:1px solid var(--line); }
+.md-table { width:100%; border-collapse:collapse; font-size:13.4px; background:#fff; }
+.md-table th,.md-table td { padding:10px 13px; text-align:left; vertical-align:top; line-height:1.75; border-bottom:1px solid var(--line); border-right:1px solid #eaf1f1; }
+.md-table th:last-child,.md-table td:last-child { border-right:0; }
+.md-table thead th { position:sticky; top:0; color:#fff; font-weight:700; white-space:nowrap; background:var(--navy); border-bottom:0; }
+.md-table tbody tr:nth-child(even) { background:#f7fafa; }
+.md-table tbody tr:hover { background:#eef6f5; }
+.md-table tbody tr:last-child td { border-bottom:0; }
+.md-table td:first-child { color:var(--navy); font-weight:600; }
+.md-table code { font-size:12.2px; }
+
+/* Mermaid 矢量图容器 */
+.md-figure { margin:20px 0; padding:20px 16px; overflow-x:auto; text-align:center; background:#f7fbfb; border:1px solid var(--line); border-radius:4px; }
+.md-figure .mermaid { display:inline-block; min-width:min(100%,560px); }
+.md-figure svg { max-width:100%; height:auto; }
+
+@media (max-width:600px) {
+  .md-body { padding:16px 13px; font-size:14px; }
+  .md-body .md-h1 { font-size:22px; }
+  .md-body .md-h2 { font-size:18px; }
+  .md-anchor { display:none; }
+}

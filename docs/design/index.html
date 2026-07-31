@@ -28,9 +28,11 @@
       <p class="eyebrow" id="doc-eyebrow">PRODUCT &amp; TECHNICAL DESIGN</p>
       <h1 id="doc-title">HELPBUY：技术设计文档</h1>
       <p class="reader-lead" id="doc-lead">选择上方「技术设计」菜单中的任一文档查看；文档以 UTF-8 原文加载，可下载完整 Markdown。</p>
-      <p class="reader-source">文档以 UTF-8 原文加载；可使用右上角按钮下载完整 Markdown。</p>
-      <pre id="full-document" class="reader-markdown" aria-live="polite">正在加载设计文档…</pre>
+      <p class="reader-source">文档按 Markdown 渲染：表格为真实表格，架构图等宽保真（可横向滚动），标注 mermaid 的图渲染为矢量图；可使用右上角按钮下载完整 Markdown 原文。</p>
+      <div id="full-document" class="md-body is-loading" aria-live="polite">正在加载设计文档…</div>
     </main>
+    <script src="../assets/vendor/marked.min.js"></script>
+    <script src="../assets/md-render.js"></script>
     <script>
       const docs = {
         overview: { file: "../HELPBUY_总体设计.md", title: "HELPBUY：产品与技术总体设计", eyebrow: "OVERALL DESIGN · V1.0", lead: "模块划分、数据模型、执行通道、AI 技术路线、付款安全、研发阶段与技术难点分析（初版总体设计）。" },
@@ -56,10 +58,13 @@
       document.querySelectorAll(".dropdown-menu a[data-doc]").forEach((a) => {
         a.classList.toggle("current", a.getAttribute("data-doc") === key);
       });
-      fetch(doc.file)
-        .then((response) => { if (!response.ok) throw new Error("无法读取设计文档"); return response.arrayBuffer(); })
-        .then((buffer) => { document.getElementById("full-document").textContent = new TextDecoder("utf-8").decode(buffer).replace(/^\uFEFF/, ""); })
-        .catch(() => { document.getElementById("full-document").textContent = "设计文档暂时无法加载。请使用右上角“下载设计文档”获取原文。"; });
+      const target = document.getElementById("full-document");
+      window.HELPBUY_MD.render({
+        file: doc.file,
+        target,
+        baseHref: "../assets/",
+        onError: "设计文档暂时无法加载。请使用右上角“下载设计文档”获取原文。"
+      }).then(() => { target.classList.remove("is-loading"); });
     </script>
   </body>
 </html>

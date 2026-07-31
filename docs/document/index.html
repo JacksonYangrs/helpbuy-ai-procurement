@@ -28,24 +28,19 @@
       <p class="eyebrow">FULL DOCUMENT · V2.0 · 2026-07-29</p>
       <h1>HELPBUY：AI 代采购商业计划与产品需求文档</h1>
       <p class="reader-lead">本页展示与主站相同的完整 PRD：商业计划、服务费与单位经济、三阶段产品与运营规划、AI 成本控制、功能需求、风险边界和行动计划。</p>
-      <p class="reader-source">文档以 UTF-8 原文加载；可使用右上角按钮下载完整 Markdown。</p>
-      <pre id="full-document" class="reader-markdown" aria-live="polite">正在加载完整方案…</pre>
+      <p class="reader-source">文档按 Markdown 渲染：表格为真实表格，架构图等宽保真（可横向滚动）；可使用右上角按钮下载完整 Markdown 原文。</p>
+      <div id="full-document" class="md-body is-loading" aria-live="polite">正在加载完整方案…</div>
     </main>
+    <script src="../assets/vendor/marked.min.js"></script>
+    <script src="../assets/md-render.js"></script>
     <script>
-      const source = "../HELPBUY_PRD_V2_商业计划与产品方案.md";
       const target = document.getElementById("full-document");
-      fetch(source)
-        .then((response) => {
-          if (!response.ok) throw new Error("无法读取完整方案");
-          return response.arrayBuffer();
-        })
-        .then((buffer) => {
-          const content = new TextDecoder("utf-8").decode(buffer).replace(/^\uFEFF/, "");
-          target.textContent = content;
-        })
-        .catch(() => {
-          target.textContent = "完整方案暂时无法加载。请使用右上角“下载完整 Markdown”获取原文。";
-        });
+      window.HELPBUY_MD.render({
+        file: "../HELPBUY_PRD_V2_商业计划与产品方案.md",
+        target,
+        baseHref: "../assets/",
+        onError: "完整方案暂时无法加载。请使用右上角“下载完整 Markdown”获取原文。"
+      }).then(() => { target.classList.remove("is-loading"); });
     </script>
   </body>
 </html>
