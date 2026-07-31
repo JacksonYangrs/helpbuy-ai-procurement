@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HELPBUY｜产品与技术设计文档</title>
+    <title>HELPBUY｜技术设计文档</title>
     <link rel="stylesheet" href="../assets/site.css">
   </head>
   <body class="reader-body">
@@ -11,32 +11,56 @@
       <a class="brand" href="../">HELP<span>BUY</span></a>
       <nav>
         <a href="../">返回概览</a>
-        <a href="../document/">商业计划与 PRD</a>
-        <a class="download" href="../HELPBUY_产品与技术设计文档_V1.md" download>下载设计文档</a>
+        <div class="has-dropdown">
+          <a class="dropdown-toggle" href="../design/">技术设计</a>
+          <div class="dropdown-menu">
+            <span class="menu-label">设计文档</span>
+            <a data-doc="aggregate" href="../design/?doc=aggregate">采购需求聚合子系统设计</a>
+            <a data-doc="execution" href="../design/?doc=execution">下单执行子系统设计</a>
+            <a data-doc="ai" href="../design/?doc=ai">AI 方案设计</a>
+            <a data-doc="v1" href="../design/?doc=v1">产品与技术设计 V1</a>
+          </div>
+        </div>
+        <a class="download" id="download-link" href="../HELPBUY_产品与技术设计文档_V1.md" download>下载设计文档</a>
       </nav>
     </header>
+    <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><a href="../design/">技术设计</a><span>›</span><b id="crumb-current">设计文档</b></nav>
     <main class="reader reader-full">
-      <p class="eyebrow">PRODUCT &amp; TECHNICAL DESIGN · V1.0</p>
-      <h1>HELPBUY：产品与技术设计文档</h1>
-      <p class="reader-lead">模块划分、数据模型、执行通道、AI 技术路线、付款安全、研发阶段与技术难点分析。</p>
+      <p class="eyebrow" id="doc-eyebrow">PRODUCT &amp; TECHNICAL DESIGN</p>
+      <h1 id="doc-title">HELPBUY：技术设计文档</h1>
+      <p class="reader-lead" id="doc-lead">选择上方「技术设计」菜单中的任一文档查看；文档以 UTF-8 原文加载，可下载完整 Markdown。</p>
       <p class="reader-source">文档以 UTF-8 原文加载；可使用右上角按钮下载完整 Markdown。</p>
       <pre id="full-document" class="reader-markdown" aria-live="polite">正在加载设计文档…</pre>
     </main>
     <script>
-      const source = "../HELPBUY_产品与技术设计文档_V1.md";
-      const target = document.getElementById("full-document");
-      fetch(source)
-        .then((response) => {
-          if (!response.ok) throw new Error("无法读取设计文档");
-          return response.arrayBuffer();
-        })
-        .then((buffer) => {
-          const content = new TextDecoder("utf-8").decode(buffer).replace(/^\uFEFF/, "");
-          target.textContent = content;
-        })
-        .catch(() => {
-          target.textContent = "设计文档暂时无法加载。请使用右上角“下载设计文档”获取原文。";
-        });
+      const docs = {
+        aggregate: { file: "../HELPBUY_采购需求聚合子系统设计.md", title: "HELPBUY：采购需求聚合子系统设计文档", eyebrow: "PROCUREMENT INTAKE SUBSYSTEM · DESIGN", lead: "从邮件、飞书群、企业微信群自动采集客户采购需求，结构化沉淀；覆盖数据模型、采集调度、AI 识别与去重机制。" },
+        execution: { file: "../HELPBUY_下单执行子系统设计.md", title: "HELPBUY：下单执行子系统设计文档", eyebrow: "ORDER EXECUTION SUBSYSTEM · DESIGN", lead: "已确认子单在第三方电商自动选品、填单、下单与付款；覆盖混合架构、付款安全与风控应急链路。" },
+        ai: { file: "../HELPBUY_AI方案设计.md", title: "HELPBUY：AI 方案设计文档", eyebrow: "AI APPROACH · DESIGN", lead: "采集层多模态提取、拆单、分类与视觉 LLM 管线；含国内外模型路由与成本记账。" },
+        v1: { file: "../HELPBUY_产品与技术设计文档_V1.md", title: "HELPBUY：产品与技术设计文档 V1", eyebrow: "PRODUCT & TECHNICAL DESIGN · V1.0", lead: "模块划分、数据模型、执行通道、AI 技术路线、付款安全、研发阶段与技术难点分析。" }
+      };
+      const params = new URLSearchParams(location.search);
+      const key = docs[params.get("doc")] ? params.get("doc") : "aggregate";
+      const doc = docs[key];
+      const titleEl = document.getElementById("doc-title");
+      const eyebrowEl = document.getElementById("doc-eyebrow");
+      const leadEl = document.getElementById("doc-lead");
+      const crumbEl = document.getElementById("crumb-current");
+      const downloadEl = document.getElementById("download-link");
+      const shortName = doc.title.replace("HELPBUY：", "");
+      titleEl.textContent = doc.title;
+      eyebrowEl.textContent = doc.eyebrow;
+      leadEl.textContent = doc.lead;
+      crumbEl.textContent = shortName;
+      downloadEl.setAttribute("href", doc.file);
+      document.title = "HELPBUY｜" + shortName;
+      document.querySelectorAll(".dropdown-menu a[data-doc]").forEach((a) => {
+        a.classList.toggle("current", a.getAttribute("data-doc") === key);
+      });
+      fetch(doc.file)
+        .then((response) => { if (!response.ok) throw new Error("无法读取设计文档"); return response.arrayBuffer(); })
+        .then((buffer) => { document.getElementById("full-document").textContent = new TextDecoder("utf-8").decode(buffer).replace(/^\uFEFF/, ""); })
+        .catch(() => { document.getElementById("full-document").textContent = "设计文档暂时无法加载。请使用右上角“下载设计文档”获取原文。"; });
     </script>
   </body>
 </html>
