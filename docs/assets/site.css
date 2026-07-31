@@ -40,15 +40,16 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:20
 .has-dropdown { position:relative; }
 .dropdown-toggle { cursor:pointer; }
 .dropdown-toggle::after { content:"\25BE"; margin-left:5px; font-size:9px; vertical-align:middle; }
-.dropdown-menu { position:absolute; top:calc(100% + 14px); left:0; z-index:30; display:none; min-width:252px; flex-direction:column; padding:8px; background:#07253a; border:1px solid rgb(150 232 225 /.28); box-shadow:0 16px 38px rgb(0 0 0 /.34); }
-.has-dropdown:hover .dropdown-menu, .has-dropdown:focus-within .dropdown-menu { display:flex; }
-.dropdown-menu .menu-label { padding:6px 13px 9px; color:var(--aqua); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+.dropdown-menu { position:absolute; top:100%; left:0; z-index:30; min-width:252px; display:flex; flex-direction:column; padding:8px; background:#07253a; border:1px solid rgb(150 232 225 /.28); box-shadow:0 16px 38px rgb(0 0 0 /.34); opacity:0; visibility:hidden; transform:translateY(8px); transition:opacity .16s ease, transform .16s ease, visibility 0s linear .22s; pointer-events:none; }
+.has-dropdown:hover .dropdown-menu, .has-dropdown:focus-within .dropdown-menu { opacity:1; visibility:visible; transform:translateY(0); pointer-events:auto; transition:opacity .16s ease, transform .16s ease, visibility 0s; }
 .dropdown-menu a { padding:11px 13px; color:rgb(228 247 246 /.86); font-size:13px; white-space:nowrap; border-radius:4px; }
 .dropdown-menu a:hover, .dropdown-menu a.current { color:#fff; background:rgb(255 255 255 /.09); }
 .demo-links { display:flex; align-items:center; gap:18px; font-size:13px; }
 .demo-links a { color:rgb(228 247 246 /.82); }
 .demo-links a:hover { color:#fff; }
-.demo-nav .has-dropdown .dropdown-menu { top:calc(100% + 12px); }
+/* 桥接：填补 toggle 与菜单之间的空隙，hover 移入菜单时不中断 */
+.dropdown-menu::before { content:""; position:absolute; top:-16px; left:0; right:0; height:16px; }
+.demo-nav .has-dropdown .dropdown-menu { top:100%; }
 /* 面包屑 / 返回 */
 .reader-breadcrumb { width:min(100% - 48px,1220px); margin:24px auto 0; font-size:12px; color:var(--muted); }
 .reader-breadcrumb a { color:var(--teal); }
