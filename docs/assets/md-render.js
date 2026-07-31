@@ -94,10 +94,10 @@
             lineColor: "#4b6b7c",
             secondaryColor: "#f6f8f7",
             tertiaryColor: "#ffffff",
-            fontSize: "14px"
+            fontSize: "18px"
           },
-          flowchart: { curve: "basis", htmlLabels: true, useMaxWidth: true },
-          sequence: { useMaxWidth: true }
+          flowchart: { curve: "basis", htmlLabels: true, useMaxWidth: false },
+          sequence: { useMaxWidth: false }
         });
         return mermaid.run({ nodes: nodes });
       })
