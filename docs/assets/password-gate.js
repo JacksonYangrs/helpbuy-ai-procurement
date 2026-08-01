@@ -24,10 +24,35 @@
     }
   }
 
-  function unlock() {
+  function loadEmbeddedDocs() {
+    if (!global.__HELPBUY_EMBED) return;
+    var base = (typeof global.__HELPBUY_BASE !== "undefined") ? global.__HELPBUY_BASE : "assets/";
+    var url;
+    try {
+      url = new URL(base, location.href).href + "documents.js";
+    } catch (e) {
+      url = base + "documents.js";
+    }
+    var s = document.createElement("script");
+    s.src = url;
+    s.onload = function () {
+      if (typeof global.__HELPBUY_BOOT === "function") global.__HELPBUY_BOOT();
+    };
+    s.onerror = function () {
+      if (typeof global.__HELPBUY_BOOT === "function") global.__HELPBUY_BOOT();
+    };
+    document.head.appendChild(s);
+  }
+
+  function unlockAndReveal() {
     try {
       global.sessionStorage.setItem(STORAGE_KEY, "1");
     } catch (e) {}
+    try {
+      var ov = document.getElementById("pw-gate");
+      if (ov) ov.remove();
+    } catch (e) {}
+    loadEmbeddedDocs();
   }
 
   function injectStyle() {
@@ -85,8 +110,7 @@
 
     function attempt() {
       if (input.value === PASSWORD) {
-        unlock();
-        overlay.remove();
+        unlockAndReveal();
       } else {
         err.textContent = "密码错误，请重试。";
         input.value = "";
@@ -104,7 +128,10 @@
   }
 
   function init() {
-    if (isUnlocked()) return;
+    if (isUnlocked()) {
+      loadEmbeddedDocs();
+      return;
+    }
     buildModal();
   }
 

@@ -114,7 +114,8 @@
 
   /*
    * render(options)
-   *   file       {string} Markdown 文件地址
+   *   file       {string} Markdown 文件地址（远程 fetch；默认路径）
+   *   content    {string} 直接内嵌的 Markdown 文本（优先于 file，避免裸 .md 被直接访问）
    *   target     {Element} 渲染容器
    *   baseHref   {string} 资源相对前缀（用于懒加载 mermaid），如 "../assets/"
    *   onError    {string} 加载失败时的提示文案
@@ -123,13 +124,22 @@
     var target = options.target;
     var baseHref = options.baseHref || "assets/";
 
-    return fetch(options.file)
-      .then(function (response) {
-        if (!response.ok) throw new Error("无法读取文档");
-        return response.arrayBuffer();
-      })
-      .then(function (buffer) {
-        var text = new TextDecoder("utf-8").decode(buffer).replace(/^\uFEFF/, "");
+    var loadText;
+    if (typeof options.content === "string") {
+      loadText = Promise.resolve(options.content);
+    } else {
+      loadText = fetch(options.file)
+        .then(function (response) {
+          if (!response.ok) throw new Error("无法读取文档");
+          return response.arrayBuffer();
+        })
+        .then(function (buffer) {
+          return new TextDecoder("utf-8").decode(buffer).replace(/^\uFEFF/, "");
+        });
+    }
+
+    return loadText
+      .then(function (text) {
         global.marked.setOptions({
           renderer: buildRenderer(),
           gfm: true,

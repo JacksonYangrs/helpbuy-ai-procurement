@@ -28,8 +28,8 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Include all document sources
-        run: cp public/*.md docs/
+      - name: Build embedded documents (no bare .md published)
+        run: node tools/build-embed-docs.mjs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

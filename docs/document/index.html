@@ -14,12 +14,13 @@
         <div class="has-dropdown">
           <a class="dropdown-toggle" href="../design/">技术设计</a>
           <div class="dropdown-menu">
+            <a href="../design/?doc=overall">产品与技术总体设计</a>
             <a href="../design/?doc=aggregate">采购需求聚合子系统设计</a>
             <a href="../design/?doc=execution">下单执行子系统设计</a>
             <a href="../design/?doc=ai">AI 方案设计</a>
           </div>
         </div>
-        <a href="../sourcecode/">源代码管理</a><a class="download" href="../HELPBUY_PRD_V2_商业计划与产品方案.md" download>下载完整 Markdown</a>
+        <a href="../sourcecode/">源代码管理</a><a class="download" id="download-link" href="#" role="button">下载完整 Markdown</a>
       </nav>
     </header>
     <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><b>完整 PRD</b></nav>
@@ -33,13 +34,27 @@
     <script src="../assets/vendor/marked.min.js"></script>
     <script src="../assets/md-render.js"></script>
     <script>
-      const target = document.getElementById("full-document");
-      window.HELPBUY_MD.render({
-        file: "../HELPBUY_PRD_V2_商业计划与产品方案.md",
-        target,
-        baseHref: "../assets/",
-        onError: "完整方案暂时无法加载。请使用右上角“下载完整 Markdown”获取原文。"
-      }).then(() => { target.classList.remove("is-loading"); });
+      window.__HELPBUY_EMBED = true;
+      window.__HELPBUY_BASE = "../assets/";
+      window.__HELPBUY_BOOT = function () {
+        const target = document.getElementById("full-document");
+        window.HELPBUY_MD.render({
+          content: window.HELPBUY_DOCS.prd,
+          target,
+          baseHref: "../assets/",
+          onError: "完整方案暂时无法加载。请使用右上角“下载完整 Markdown”获取原文。"
+        }).then(() => { target.classList.remove("is-loading"); });
+        const downloadEl = document.getElementById("download-link");
+        downloadEl.addEventListener("click", function (e) {
+          e.preventDefault();
+          var blob = new Blob([window.HELPBUY_DOCS.prd], { type: "text/markdown;charset=utf-8" });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url; a.download = "HELPBUY_PRD_V2_商业计划与产品方案.md";
+          document.body.appendChild(a); a.click();
+          document.body.removeChild(a); URL.revokeObjectURL(url);
+        });
+      };
     </script>
   <script src="../assets/password-gate.js"></script>
   </body>

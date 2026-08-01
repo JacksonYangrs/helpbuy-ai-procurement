@@ -14,12 +14,13 @@
         <div class="has-dropdown">
           <a class="dropdown-toggle" href="../design/">技术设计</a>
           <div class="dropdown-menu">
+            <a data-doc="overall" href="../design/?doc=overall">产品与技术总体设计</a>
             <a data-doc="aggregate" href="../design/?doc=aggregate">采购需求聚合子系统设计</a>
             <a data-doc="execution" href="../design/?doc=execution">下单执行子系统设计</a>
             <a data-doc="ai" href="../design/?doc=ai">AI 方案设计</a>
           </div>
         </div>
-        <a href="../sourcecode/">源代码管理</a><a class="download" id="download-link" href="../HELPBUY_采购需求聚合子系统设计.md" download>下载设计文档</a>
+        <a href="../sourcecode/">源代码管理</a><a class="download" id="download-link" href="#" role="button">下载设计文档</a>
       </nav>
     </header>
     <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><a href="../design/">技术设计</a><span>›</span><b id="crumb-current">设计文档</b></nav>
@@ -33,36 +34,49 @@
     <script src="../assets/vendor/marked.min.js"></script>
     <script src="../assets/md-render.js"></script>
     <script>
-      const docs = {
-        aggregate: { file: "../HELPBUY_采购需求聚合子系统设计.md", title: "HELPBUY：采购需求聚合子系统设计文档", eyebrow: "PROCUREMENT INTAKE SUBSYSTEM · DESIGN", lead: "从邮件、飞书群、企业微信群自动采集客户采购需求，结构化沉淀；覆盖数据模型、采集调度、AI 识别与去重机制。" },
-        execution: { file: "../HELPBUY_下单执行子系统设计.md", title: "HELPBUY：下单执行子系统设计文档", eyebrow: "ORDER EXECUTION SUBSYSTEM · DESIGN", lead: "已确认子单在第三方电商自动选品、填单、下单与付款；覆盖混合架构、付款安全与风控应急链路。" },
-        ai: { file: "../HELPBUY_AI方案设计.md", title: "HELPBUY：代采平台总体 AI 方案设计文档", eyebrow: "PLATFORM AI STRATEGY · DESIGN", lead: "平台级 AI 总体方案：模型选型与多模型路由、多模态处理、成本记账、容错与模型迭代；并落到两大应用场景——采购需求聚合与下单执行。" }
+      window.__HELPBUY_EMBED = true;
+      window.__HELPBUY_BASE = "../assets/";
+      window.__HELPBUY_BOOT = function () {
+        const docs = {
+          overall: { filename: "HELPBUY_总体设计.md", title: "HELPBUY：产品与技术总体设计文档", eyebrow: "PRODUCT & TECHNICAL OVERALL DESIGN", lead: "平台级总体设计：商业定位、两阶段产品路线、内核硬约束（金额/状态机/契约/幂等/溯源）、子系统边界与演进路线。" },
+          aggregate: { filename: "HELPBUY_采购需求聚合子系统设计.md", title: "HELPBUY：采购需求聚合子系统设计文档", eyebrow: "PROCUREMENT INTAKE SUBSYSTEM · DESIGN", lead: "从邮件、飞书群、企业微信群自动采集客户采购需求，结构化沉淀；覆盖数据模型、采集调度、AI 识别与去重机制。" },
+          execution: { filename: "HELPBUY_下单执行子系统设计.md", title: "HELPBUY：下单执行子系统设计文档", eyebrow: "ORDER EXECUTION SUBSYSTEM · DESIGN", lead: "已确认子单在第三方电商自动选品、填单、下单与付款；覆盖混合架构、付款安全与风控应急链路。" },
+          ai: { filename: "HELPBUY_AI方案设计.md", title: "HELPBUY：代采平台总体 AI 方案设计文档", eyebrow: "PLATFORM AI STRATEGY · DESIGN", lead: "平台级 AI 总体方案：模型选型与多模型路由、多模态处理、成本记账、容错与模型迭代；并落到两大应用场景——采购需求聚合与下单执行。" }
+        };
+        const params = new URLSearchParams(location.search);
+        const key = docs[params.get("doc")] ? params.get("doc") : "aggregate";
+        const doc = docs[key];
+        const titleEl = document.getElementById("doc-title");
+        const eyebrowEl = document.getElementById("doc-eyebrow");
+        const leadEl = document.getElementById("doc-lead");
+        const crumbEl = document.getElementById("crumb-current");
+        const downloadEl = document.getElementById("download-link");
+        const shortName = doc.title.replace("HELPBUY：", "");
+        titleEl.textContent = doc.title;
+        eyebrowEl.textContent = doc.eyebrow;
+        leadEl.textContent = doc.lead;
+        crumbEl.textContent = shortName;
+        document.title = "HELPBUY｜" + shortName;
+        document.querySelectorAll(".dropdown-menu a[data-doc]").forEach((a) => {
+          a.classList.toggle("current", a.getAttribute("data-doc") === key);
+        });
+        function downloadDoc(k, filename) {
+          var blob = new Blob([window.HELPBUY_DOCS[k]], { type: "text/markdown;charset=utf-8" });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url; a.download = filename;
+          document.body.appendChild(a); a.click();
+          document.body.removeChild(a); URL.revokeObjectURL(url);
+        }
+        downloadEl.addEventListener("click", function (e) { e.preventDefault(); downloadDoc(key, doc.filename); });
+        const target = document.getElementById("full-document");
+        window.HELPBUY_MD.render({
+          content: window.HELPBUY_DOCS[key],
+          target,
+          baseHref: "../assets/",
+          onError: "设计文档暂时无法加载。请使用右上角“下载设计文档”获取原文。"
+        }).then(() => { target.classList.remove("is-loading"); });
       };
-      const params = new URLSearchParams(location.search);
-      const key = docs[params.get("doc")] ? params.get("doc") : "aggregate";
-      const doc = docs[key];
-      const titleEl = document.getElementById("doc-title");
-      const eyebrowEl = document.getElementById("doc-eyebrow");
-      const leadEl = document.getElementById("doc-lead");
-      const crumbEl = document.getElementById("crumb-current");
-      const downloadEl = document.getElementById("download-link");
-      const shortName = doc.title.replace("HELPBUY：", "");
-      titleEl.textContent = doc.title;
-      eyebrowEl.textContent = doc.eyebrow;
-      leadEl.textContent = doc.lead;
-      crumbEl.textContent = shortName;
-      downloadEl.setAttribute("href", doc.file);
-      document.title = "HELPBUY｜" + shortName;
-      document.querySelectorAll(".dropdown-menu a[data-doc]").forEach((a) => {
-        a.classList.toggle("current", a.getAttribute("data-doc") === key);
-      });
-      const target = document.getElementById("full-document");
-      window.HELPBUY_MD.render({
-        file: doc.file,
-        target,
-        baseHref: "../assets/",
-        onError: "设计文档暂时无法加载。请使用右上角“下载设计文档”获取原文。"
-      }).then(() => { target.classList.remove("is-loading"); });
     </script>
   <script src="../assets/password-gate.js"></script>
   </body>
