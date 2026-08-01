@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HELPBUY｜技术设计文档</title>
+    <title>HELPBUY｜产品设计文档</title>
     <link rel="stylesheet" href="../assets/site.css">
   </head>
   <body class="reader-body pw-protected">
@@ -13,22 +13,23 @@
       <nav>
         <a href="../">返回概览</a>
         <div class="has-dropdown">
-          <a class="dropdown-toggle" href="../design/">技术设计</a>
+          <a class="dropdown-toggle" href="../design/">产品设计</a>
           <div class="dropdown-menu">
             <a data-doc="overall" href="../design/?doc=overall">产品与技术总体设计</a>
             <a data-doc="aggregate" href="../design/?doc=aggregate">采购需求聚合子系统设计</a>
             <a data-doc="execution" href="../design/?doc=execution">下单执行子系统设计</a>
             <a data-doc="ai" href="../design/?doc=ai">AI 方案设计</a>
+            <a data-doc="admin" href="../design/?doc=admin">系统配置与AI监控管理台设计</a>
           </div>
         </div>
         <a href="../sourcecode/">源代码管理</a><a class="download" id="download-link" href="#" role="button">下载设计文档</a>
       </nav>
     </header>
-    <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><a href="../design/">技术设计</a><span>›</span><b id="crumb-current">设计文档</b></nav>
+    <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><a href="../design/">产品设计</a><span>›</span><b id="crumb-current">设计文档</b></nav>
     <main class="reader reader-full">
       <p class="eyebrow" id="doc-eyebrow">PRODUCT &amp; TECHNICAL DESIGN</p>
-      <h1 id="doc-title">HELPBUY：技术设计文档</h1>
-      <p class="reader-lead" id="doc-lead">选择上方「技术设计」菜单中的任一文档查看；文档以 UTF-8 原文加载，可下载完整 Markdown。</p>
+      <h1 id="doc-title">HELPBUY：产品设计文档</h1>
+      <p class="reader-lead" id="doc-lead">选择上方「产品设计」菜单中的任一文档查看；文档以 UTF-8 原文加载，可下载完整 Markdown。</p>
       <p class="reader-source">文档按 Markdown 渲染：表格为真实表格，架构图等宽保真（可横向滚动），标注 mermaid 的图渲染为矢量图；可使用右上角按钮下载完整 Markdown 原文。</p>
       <div id="full-document" class="md-body is-loading" aria-live="polite">正在加载设计文档…</div>
     </main>
@@ -42,7 +43,8 @@
           overall: { filename: "HELPBUY_总体设计.md", title: "HELPBUY：产品与技术总体设计文档", eyebrow: "PRODUCT & TECHNICAL OVERALL DESIGN", lead: "平台级总体设计：商业定位、两阶段产品路线、内核硬约束（金额/状态机/契约/幂等/溯源）、子系统边界与演进路线。" },
           aggregate: { filename: "HELPBUY_采购需求聚合子系统设计.md", title: "HELPBUY：采购需求聚合子系统设计文档", eyebrow: "PROCUREMENT INTAKE SUBSYSTEM · DESIGN", lead: "从邮件、飞书群、企业微信群自动采集客户采购需求，结构化沉淀；覆盖数据模型、采集调度、AI 识别与去重机制。" },
           execution: { filename: "HELPBUY_下单执行子系统设计.md", title: "HELPBUY：下单执行子系统设计文档", eyebrow: "ORDER EXECUTION SUBSYSTEM · DESIGN", lead: "已确认子单在第三方电商自动选品、填单、下单与付款；覆盖混合架构、付款安全与风控应急链路。" },
-          ai: { filename: "HELPBUY_AI方案设计.md", title: "HELPBUY：代采平台总体 AI 方案设计文档", eyebrow: "PLATFORM AI STRATEGY · DESIGN", lead: "平台级 AI 总体方案：模型选型与多模型路由、多模态处理、成本记账、容错与模型迭代；并落到两大应用场景——采购需求聚合与下单执行。" }
+          ai: { filename: "HELPBUY_AI方案设计.md", title: "HELPBUY：代采平台总体 AI 方案设计文档", eyebrow: "PLATFORM AI STRATEGY · DESIGN", lead: "平台级 AI 总体方案：模型选型与多模型路由、多模态处理、成本记账、容错与模型迭代；并落到两大应用场景——采购需求聚合与下单执行。" },
+          admin: { filename: "设计方案_系统配置与AI监控管理台.md", title: "HELPBUY：系统配置与AI监控管理台设计文档", eyebrow: "SYSTEM CONFIG & AI MONITORING CONSOLE · DESIGN", lead: "平台运维管理台设计：模型/AI网关配置、第三方电商API配置、生产环境运行配置与 AI 运行状态监控，含最小 RBAC 角色隔离。" }
         };
         const params = new URLSearchParams(location.search);
         const key = docs[params.get("doc")] ? params.get("doc") : "aggregate";

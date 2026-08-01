@@ -44,6 +44,7 @@ const MAP = {
   "设计方案_采购需求聚合子系统.md": "aggregate",
   "设计方案_下单执行子系统.md": "execution",
   "设计方案_代采平台AI方案.md": "ai",
+  "设计方案_系统配置与AI监控管理台.md": "admin",
   "HELPBUY_PRD_V2_商业计划与产品方案.md": "prd",
   "源代码与设计文档映射.md": "mapping",
 };
