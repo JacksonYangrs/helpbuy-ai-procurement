@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>HELPBUY｜完整商业计划与产品需求文档</title>
+    <title>HELPBUY｜源代码与设计文档映射</title>
     <link rel="stylesheet" href="../assets/site.css">
   </head>
   <body class="reader-body">
@@ -20,26 +20,27 @@
             <a href="../design/?doc=ai">AI 方案设计</a>
           </div>
         </div>
-        <a href="../sourcecode/">源代码管理</a><a class="download" href="../HELPBUY_PRD_V2_商业计划与产品方案.md" download>下载完整 Markdown</a>
+        <a class="current" href="../sourcecode/">源代码管理</a>
+        <a class="download" href="../源代码与设计文档映射.md" download>下载完整 Markdown</a>
       </nav>
     </header>
-    <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><b>完整 PRD</b></nav>
+    <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><b>源代码管理</b></nav>
     <main class="reader reader-full">
-      <p class="eyebrow">FULL DOCUMENT · V2.0 · 2026-07-29</p>
-      <h1>HELPBUY：AI 代采购商业计划与产品需求文档</h1>
-      <p class="reader-lead">本页展示与主站相同的完整 PRD：商业计划、服务费与单位经济、三阶段产品与运营规划、AI 成本控制、功能需求、风险边界和行动计划。</p>
-      <p class="reader-source">文档按 Markdown 渲染：表格为真实表格，架构图等宽保真（可横向滚动）；可使用右上角按钮下载完整 Markdown 原文。</p>
-      <div id="full-document" class="md-body is-loading" aria-live="polite">正在加载完整方案…</div>
+      <p class="eyebrow">SOURCE CODE × DESIGN MAP</p>
+      <h1>HELPBUY：源代码与设计文档映射对照</h1>
+      <p class="reader-lead">逐文件对照「代码实现」与「需求/设计文档」，用于符合度检查；每个源文件与目录均可点击直达 GitHub 对应位置。</p>
+      <p class="reader-source">文档按 Markdown 渲染：表格为真实表格（窄屏可横向滚动），架构图等宽保真；标注 mermaid 的图渲染为矢量图；可使用右上角按钮下载完整 Markdown 原文。</p>
+      <div id="full-document" class="md-body is-loading" aria-live="polite">正在加载映射文档…</div>
     </main>
     <script src="../assets/vendor/marked.min.js"></script>
     <script src="../assets/md-render.js"></script>
     <script>
       const target = document.getElementById("full-document");
       window.HELPBUY_MD.render({
-        file: "../HELPBUY_PRD_V2_商业计划与产品方案.md",
+        file: "../源代码与设计文档映射.md",
         target,
         baseHref: "../assets/",
-        onError: "完整方案暂时无法加载。请使用右上角“下载完整 Markdown”获取原文。"
+        onError: "映射文档暂时无法加载。请使用右上角“下载完整 Markdown”获取原文。"
       }).then(() => { target.classList.remove("is-loading"); });
     </script>
   </body>
