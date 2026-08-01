@@ -1,20 +1,24 @@
 /*
- * HELPBUY 文档访问密码门禁（当前页内模态弹窗）
- * 作用：受保护的文档页（技术设计 / PRD / 源代码管理）在展示内容前，以「页面内弹窗」形式
- *       要求输入访问密码；校验通过（本标签内）才解锁，GitHub 链接等跳转仅在解锁后可点击。
+ * HELPBUY 文档访问密码门禁（当前页内模态弹窗，不可关闭）
+ * 作用：受保护的文档页（技术设计 / PRD / 源代码管理）在展示任何内容前，以「页面内弹窗」形式
+ *       强制要求输入访问密码；校验通过才解锁并加载内嵌文档内容。
  *       主页（index）与 DEMO 不挂载本脚本，免密访问。
- * 样式：半透明遮罩 + 背景模糊，卡片对齐站点配色（navy/teal/aqua），非整页遮挡的独立页面。
- * 行为：
- *  - 每次打开受保护文档都强制弹框（不记忆解锁态，满足「打开任何一个文档都必须输入密码」）。
- *  - 密码正确 → 移除弹窗并加载内嵌文档内容。
- *  - 密码错误 → 卡片内提示并清空输入、重新聚焦。
- * 注：密码写死于前端（内部 obscurity，非真安全）。
+ * 加固（本版重点：弹窗不可关闭 / 不可绕过）：
+ *  1) 页面内容由 CSS `body.pw-protected` 静态隐藏 —— 即使禁用 JS 也看不到正文（不依赖脚本生效）。
+ *  2) MutationObserver + 定时巡检：弹窗或样式被删除（含 DevTools 手删节点）立即自动重建。
+ *  3) 拦截 Esc、遮罩点击、焦点逃逸（Tab 焦点锁在卡片内），无任何关闭按钮与关闭路径。
+ *  4) 未解锁前不加载 documents.js，正文内容根本不进入页面。
+ * 注：密码写死于前端（内部 obscurity，非真安全）；documents.js 本体仍为明文，若需更强防护应做内容加密。
  */
 (function (global) {
   "use strict";
 
   var PASSWORD = "HELPBUY2026@";
+  var unlocked = false;
+  var observer = null;
+  var patrol = null;
 
+  /* ── 内容加载（仅解锁后执行） ───────────────────────────── */
   function loadEmbeddedDocs() {
     if (!global.__HELPBUY_EMBED) return;
     var base = (typeof global.__HELPBUY_BASE !== "undefined") ? global.__HELPBUY_BASE : "assets/";
@@ -36,13 +40,19 @@
   }
 
   function unlockAndReveal() {
+    unlocked = true;
+    stopGuard();
     try {
       var ov = document.getElementById("pw-gate");
       if (ov) ov.remove();
     } catch (e) {}
+    try {
+      document.body.classList.remove("pw-protected");
+    } catch (e) {}
     loadEmbeddedDocs();
   }
 
+  /* ── 样式（弹窗自身样式；正文隐藏样式在 site.css，静态生效） ─── */
   function injectStyle() {
     if (document.getElementById("pw-gate-style")) return;
     var css =
@@ -73,7 +83,9 @@
     document.head.appendChild(style);
   }
 
+  /* ── 弹窗构建 ───────────────────────────────────────────── */
   function buildModal() {
+    if (unlocked || document.getElementById("pw-gate")) return;
     injectStyle();
     var overlay = document.createElement("div");
     overlay.id = "pw-gate";
@@ -92,6 +104,7 @@
       "</div>";
     document.body.appendChild(overlay);
 
+    var card = overlay.querySelector(".pw-card");
     var input = overlay.querySelector("#pw-input");
     var err = overlay.querySelector("#pw-err");
     var submit = overlay.querySelector("#pw-submit");
@@ -110,14 +123,85 @@
     input.addEventListener("keydown", function (e) {
       if (e.key === "Enter") attempt();
     });
+    // 点击遮罩不关闭（吞掉冒泡，避免误触发页面其它逻辑）
+    overlay.addEventListener("click", function (e) {
+      if (!card.contains(e.target)) e.stopPropagation();
+    });
     setTimeout(function () {
-      input.focus();
+      try { input.focus(); } catch (e) {}
     }, 60);
   }
 
+  /* ── 守卫：弹窗不可关闭、不可绕过 ───────────────────────── */
+  function ensureLocked() {
+    if (unlocked) return;
+    try {
+      if (document.body && !document.body.classList.contains("pw-protected")) {
+        document.body.classList.add("pw-protected");
+      }
+    } catch (e) {}
+    if (!document.getElementById("pw-gate-style")) injectStyle();
+    if (!document.getElementById("pw-gate")) buildModal();
+  }
+
+  function onKeyDown(e) {
+    if (unlocked) return;
+    // Esc 不关闭
+    if (e.key === "Escape" || e.key === "Esc") {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    // Tab 焦点锁在弹窗内
+    if (e.key === "Tab") {
+      var gate = document.getElementById("pw-gate");
+      if (!gate) return;
+      var focusables = gate.querySelectorAll("input,button");
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+      var active = document.activeElement;
+      if (e.shiftKey && (active === first || !gate.contains(active))) {
+        e.preventDefault();
+        try { last.focus(); } catch (err) {}
+      } else if (!e.shiftKey && (active === last || !gate.contains(active))) {
+        e.preventDefault();
+        try { first.focus(); } catch (err) {}
+      }
+    }
+  }
+
+  function onFocusIn(e) {
+    if (unlocked) return;
+    var gate = document.getElementById("pw-gate");
+    if (!gate) return;
+    if (!gate.contains(e.target)) {
+      var input = gate.querySelector("#pw-input");
+      if (input) { try { input.focus(); } catch (err) {} }
+    }
+  }
+
+  function startGuard() {
+    document.addEventListener("keydown", onKeyDown, true);
+    document.addEventListener("focusin", onFocusIn, true);
+    if (typeof MutationObserver === "function") {
+      observer = new MutationObserver(ensureLocked);
+      observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style"] });
+    }
+    patrol = setInterval(ensureLocked, 700);
+  }
+
+  function stopGuard() {
+    document.removeEventListener("keydown", onKeyDown, true);
+    document.removeEventListener("focusin", onFocusIn, true);
+    if (observer) { try { observer.disconnect(); } catch (e) {} observer = null; }
+    if (patrol) { clearInterval(patrol); patrol = null; }
+  }
+
   function init() {
-    // 始终弹框：每次打开受保护文档都要求输入密码
-    buildModal();
+    // 每次打开受保护文档都强制弹框，且无法关闭，只能输入正确密码
+    ensureLocked();
+    startGuard();
   }
 
   if (document.readyState === "loading") {

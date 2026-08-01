@@ -129,3 +129,12 @@ footer { display:flex; align-items:center; justify-content:space-between; gap:20
   .md-body .md-h2 { font-size:18px; }
   .md-anchor { display:none; }
 }
+
+/* ── 文档门禁：未解锁前隐藏全部受保护内容（纯 CSS，禁用 JS 也生效） ── */
+body.pw-protected { overflow:hidden !important; }
+body.pw-protected > *:not(#pw-gate):not(noscript) { display:none !important; }
+body.pw-protected > noscript {
+  display:block !important; max-width:420px; margin:16vh auto 0; padding:26px 24px;
+  color:var(--navy); font-size:14px; line-height:1.8; text-align:center;
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+}
