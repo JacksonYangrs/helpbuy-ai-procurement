@@ -14,13 +14,12 @@
         <div class="has-dropdown">
           <a class="dropdown-toggle" href="../design/">技术设计</a>
           <div class="dropdown-menu">
-            <a data-doc="overview" href="../design/?doc=overview">总体设计</a>
             <a data-doc="aggregate" href="../design/?doc=aggregate">采购需求聚合子系统设计</a>
             <a data-doc="execution" href="../design/?doc=execution">下单执行子系统设计</a>
             <a data-doc="ai" href="../design/?doc=ai">AI 方案设计</a>
           </div>
         </div>
-        <a href="../sourcecode/">源代码管理</a><a class="download" id="download-link" href="../HELPBUY_总体设计.md" download>下载设计文档</a>
+        <a href="../sourcecode/">源代码管理</a><a class="download" id="download-link" href="../HELPBUY_采购需求聚合子系统设计.md" download>下载设计文档</a>
       </nav>
     </header>
     <nav class="reader-breadcrumb"><a href="../">首页</a><span>›</span><a href="../design/">技术设计</a><span>›</span><b id="crumb-current">设计文档</b></nav>
@@ -35,13 +34,12 @@
     <script src="../assets/md-render.js"></script>
     <script>
       const docs = {
-        overview: { file: "../HELPBUY_总体设计.md", title: "HELPBUY：产品与技术总体设计", eyebrow: "OVERALL DESIGN · V1.0", lead: "模块划分、数据模型、执行通道、AI 技术路线、付款安全、研发阶段与技术难点分析（初版总体设计）。" },
         aggregate: { file: "../HELPBUY_采购需求聚合子系统设计.md", title: "HELPBUY：采购需求聚合子系统设计文档", eyebrow: "PROCUREMENT INTAKE SUBSYSTEM · DESIGN", lead: "从邮件、飞书群、企业微信群自动采集客户采购需求，结构化沉淀；覆盖数据模型、采集调度、AI 识别与去重机制。" },
         execution: { file: "../HELPBUY_下单执行子系统设计.md", title: "HELPBUY：下单执行子系统设计文档", eyebrow: "ORDER EXECUTION SUBSYSTEM · DESIGN", lead: "已确认子单在第三方电商自动选品、填单、下单与付款；覆盖混合架构、付款安全与风控应急链路。" },
         ai: { file: "../HELPBUY_AI方案设计.md", title: "HELPBUY：代采平台总体 AI 方案设计文档", eyebrow: "PLATFORM AI STRATEGY · DESIGN", lead: "平台级 AI 总体方案：模型选型与多模型路由、多模态处理、成本记账、容错与模型迭代；并落到两大应用场景——采购需求聚合与下单执行。" }
       };
       const params = new URLSearchParams(location.search);
-      const key = docs[params.get("doc")] ? params.get("doc") : "overview";
+      const key = docs[params.get("doc")] ? params.get("doc") : "aggregate";
       const doc = docs[key];
       const titleEl = document.getElementById("doc-title");
       const eyebrowEl = document.getElementById("doc-eyebrow");

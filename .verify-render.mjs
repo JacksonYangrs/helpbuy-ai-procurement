@@ -53,7 +53,6 @@ console.log("✓ md-render.js 加载: HELPBUY_MD.render =", typeof MD.render ===
 
 // 3) 逐个文档跑整条管线（mermaid 库不存在 → 走 catch 降级，验证降级不丢信息）
 const files = [
-  "docs/HELPBUY_总体设计.md",
   "docs/HELPBUY_采购需求聚合子系统设计.md",
   "docs/HELPBUY_下单执行子系统设计.md",
   "docs/HELPBUY_AI方案设计.md",
