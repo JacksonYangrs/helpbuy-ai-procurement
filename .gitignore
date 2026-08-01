@@ -40,3 +40,6 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# 文档明文：只允许存在于私有核心仓，严禁提交进本公开仓
+/public/*.md

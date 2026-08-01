@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - "docs/**"
-      - "public/**"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -28,8 +27,8 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
-      - name: Build embedded documents (no bare .md published)
-        run: node tools/build-embed-docs.mjs
+      # 不在 CI 生成文档：明文只存在于私有核心仓，CI 无权也不应接触。
+      # docs/assets/documents.js 为本地加密后提交的密文，直接部署即可。
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
