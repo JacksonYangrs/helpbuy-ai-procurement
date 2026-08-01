@@ -5,24 +5,15 @@
  *       主页（index）与 DEMO 不挂载本脚本，免密访问。
  * 样式：半透明遮罩 + 背景模糊，卡片对齐站点配色（navy/teal/aqua），非整页遮挡的独立页面。
  * 行为：
- *  - 密码正确 → sessionStorage 置位，移除弹窗，本标签内跳转其他文档页不再重复提示。
+ *  - 每次打开受保护文档都强制弹框（不记忆解锁态，满足「打开任何一个文档都必须输入密码」）。
+ *  - 密码正确 → 移除弹窗并加载内嵌文档内容。
  *  - 密码错误 → 卡片内提示并清空输入、重新聚焦。
- *  - 新标签 / 无 sessionStorage → 重新弹窗。
  * 注：密码写死于前端（内部 obscurity，非真安全）。
  */
 (function (global) {
   "use strict";
 
   var PASSWORD = "HELPBUY2026@";
-  var STORAGE_KEY = "helpbuy_doc_unlocked";
-
-  function isUnlocked() {
-    try {
-      return global.sessionStorage.getItem(STORAGE_KEY) === "1";
-    } catch (e) {
-      return false;
-    }
-  }
 
   function loadEmbeddedDocs() {
     if (!global.__HELPBUY_EMBED) return;
@@ -45,9 +36,6 @@
   }
 
   function unlockAndReveal() {
-    try {
-      global.sessionStorage.setItem(STORAGE_KEY, "1");
-    } catch (e) {}
     try {
       var ov = document.getElementById("pw-gate");
       if (ov) ov.remove();
@@ -128,10 +116,7 @@
   }
 
   function init() {
-    if (isUnlocked()) {
-      loadEmbeddedDocs();
-      return;
-    }
+    // 始终弹框：每次打开受保护文档都要求输入密码
     buildModal();
   }
 
