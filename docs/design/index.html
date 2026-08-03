@@ -44,7 +44,7 @@
           aggregate: { filename: "HELPBUY_采购需求聚合子系统设计.md", title: "HELPBUY：采购需求聚合子系统设计文档", eyebrow: "PROCUREMENT INTAKE SUBSYSTEM · DESIGN", lead: "从邮件、飞书群、企业微信群自动采集客户采购需求，结构化沉淀；覆盖数据模型、采集调度、AI 识别与去重机制。" },
           execution: { filename: "HELPBUY_下单执行子系统设计.md", title: "HELPBUY：下单执行子系统设计文档", eyebrow: "ORDER EXECUTION SUBSYSTEM · DESIGN", lead: "已确认子单在第三方电商自动选品、填单、下单与付款；覆盖混合架构、付款安全与风控应急链路。" },
           ai: { filename: "HELPBUY_AI方案设计.md", title: "HELPBUY：代采平台总体 AI 方案设计文档", eyebrow: "PLATFORM AI STRATEGY · DESIGN", lead: "平台级 AI 总体方案：模型选型与多模型路由、多模态处理、成本记账、容错与模型迭代；并落到两大应用场景——采购需求聚合与下单执行。" },
-          admin: { filename: "设计方案_系统配置与AI监控管理台.md", title: "HELPBUY：系统配置与AI监控管理台设计文档", eyebrow: "SYSTEM CONFIG & AI MONITORING CONSOLE · DESIGN", lead: "平台运维管理台设计：模型/AI网关配置、第三方电商API配置、生产环境运行配置与 AI 运行状态监控，含最小 RBAC 角色隔离。" }
+          admin: { filename: "设计方案_系统配置与AI监控管理台.md", title: "HELPBUY：系统配置与AI监控管理台设计文档", eyebrow: "SYSTEM CONFIG & AI MONITORING CONSOLE · DESIGN", lead: "平台运维管理台（#11）设计，仅系统管理(sysadmin)可用：用户与权限管理（开户/改角色/重置密码/启停/删除）、采购订单来源配置（邮箱/飞书/企微及其登录凭证）、模型与AI网关配置、第三方电商API配置、生产环境运行配置，以及 AI 运行状态监控；含 RBAC 角色隔离。" }
         };
         const params = new URLSearchParams(location.search);
         const key = docs[params.get("doc")] ? params.get("doc") : "aggregate";
